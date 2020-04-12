@@ -1,6 +1,8 @@
-function [outputArg1,outputArg2] = insertPacketToQueue(packet, dev, queues)
-    %UNTITLED Summary of this function goes here
+function [devState] = insertPacketToQueue(pkt, devState)
+    %insert new packet to a device's queue (FIFO)
     %   Detailed explanation goes here
-    outputArg1 = inputArg1;
-    outputArg2 = inputArg2;
+    
+    % TODO: implement it!
+    
+    
 end

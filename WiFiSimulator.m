@@ -7,10 +7,12 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     %  and also a DS contains information about the packets transmission times.
   
     
-    % packet: a struct which contains its lenght (in bytes), its source 
+    % pkt: a struct which contains its lenght (in bytes), its source 
     % and its destination and its type (control/data)
     
      % simEvent: struct which contains the fields: type, time, station
+     
+     % link is one directional in the DSs, from src to dst
     
     fprintf('Simulator started...');
  
@@ -21,6 +23,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     linkLens = phyNetParams.linksLens;
     finTime = simulationParams.finishTime;
     debMode = simulationParams.debugMode;
+    linksInfo = logNetParams.linksInfo;
     
     %SIFS = cell2mat((cellfun(@(s)s.SIFS, devsParams,'uni',0)));
     %SlotTime = cell2mat((cellfun(@(s)s.ST, devsParams,'uni',0)));
@@ -50,7 +53,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     % infinite loop...
     
     % output preperations:
-    packetsDS ={}; % packets documentation DS
+    packetsDS = {}; % packets documentation DS
     collCnt = 0; % collisions counter
     eventsDS = cell(1, 1000); % useful in Debug mode, events documentation DS, maybe it's better not to pre-allocate...    
     eventsCnt = 0;
@@ -114,9 +117,20 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         end
                         
                     case simEventType.GEN_PACK
-                        % TODO: stop generating if the array of packets to send
-                        % becomes empty
-                         
+                        % assume only point to point links, so in the links
+                        % info. structs array, we have the only link the
+                        % device belongs info.
+                        pktLengh = randi([linksInfo{curStation}.minPktSize, linksInfo{curStation}.maxPktSize]); % randomize the packet size
+                        pkt = generatePkt(linksInfo{curStation}, pktLengh, curTime, curStation, linksInfo{curStation}.dst);
+                        devStates{curStation} = insertPacketToQueue(pkt, devStates{curStation}); % TODO: implement this function! 
+                        % update the device that it has a packet to send
+                        genDevEve = createEvent(devEventType.PACKET_EXISTS, curTime, curStation); 
+                        [devStates{curStation}, newSimEvents] = updateState(genDevEve, devStates{curStation}, curTime);
+                        simEventsList = saveNewEvents(newSimEvents, simEventsList);
+                        % create a future GEN_PACK simulation event
+                        genSimEve = createEvent(simEventType.GEN_PACK, curTime + interArr(pkt, linksInfo{curStation}), curStation); % TODO: implement this function! 
+                        simEventsList = insertInOrder(simEventsList, genSimEve);
+                        
                     case simEventType.PACKET_IN_QUQUE
                    
                     case simEventType.CHECK_QUEUE

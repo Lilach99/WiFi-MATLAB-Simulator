@@ -20,17 +20,17 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
         newState.medCtr = devState.medCtr - 1;
         handled = 1;
     end
+    % we also have to handle PACKET_EXISTS event here
+    if(eventType == devEventType.PACKET_EXISTS) 
+        handled = 1; % only if it's 'IDLE' state we will treat later
+    end
+
 
     switch devState.curState
         
         case devStateType.IDLE
             if(eventType == devEventType.PACKET_EXISTS) 
-                if(devEve.pkt.type == packetType.NONE)
-                    % error - a packet should exist!
-                    fprintf('error - no packet');
-                    return;
-                end
-                newState.curPkt = devEve.pkt; % the packet which we have to send
+                newState.curPkt = getPktFromQueue(); % the packet which we have to send, TODO: implement this function
                 % there is a packet to send
                 if(devState.medCtr == 0) 
                     % medium is free from our point of view
@@ -127,6 +127,7 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
                 % collision!!
                 opts = createOpts(devEve.pkt, timerType.NONE); % TODO: insure opts here contains the right packet
                 newSimEvents{1} = createEvent(simEventType.COLL_INC, curTime, devState.dev,opts);
+                newState.curState = devStateType.WAIT_FOR_ACK; % we have to keep waiting
             elseif(eventType == devEventType.REC_END)
                 if(checkACKValidity(devEve.pkt, devState) == 1) 
                   % create a 'CLEAR_TIMER' event for the ACK timer which
@@ -137,7 +138,26 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
                   newState.sucSentBytes = devState.sucSentBytes + devState.curPkt.legth;
                   newState.curPkt = emptyPacket();
                   newState.curRet = 0;
-                  newState.curState = devStateType.IDLE;
+                  % check if we have more packets to send in our queue;
+                  % assume the sent packet is not in the queue anymore 
+                  if(size(devState.queue, 2)==0)
+                    newState.curState = devStateType.IDLE;
+                  else
+                    % there is another packet to send! immediately start
+                    % the sensing process
+                    newState.curPkt = getPktFromQueue(); % the packet which we have to send, TODO: implement this function
+                    % there is a packet to send
+                    if(devState.medCtr == 0) 
+                        % medium is free from our point of view
+                        newState.curState = devStateType.START_CSMA;
+                        % creare a 'SET_TIMER' event after DIFS time
+                        opts = createOpts(newState.curPkt, timerType.DIFS);
+                        newSimEvents{1} = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);
+                    else
+                        % medium is busy!
+                        newState.curState = devStateType.WAIT_FOR_IDLE;
+                    end
+                  end
                 end
             elseif(handled ==0) 
                  fprintf('Illegal event') % TODO: handle the error
