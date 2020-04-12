@@ -18,12 +18,12 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
  
     % take params from the structs:
     numDevs = phyNetParams.numDevs;
-   % linksInfo = logNetParams.conParamsList;
-       % numLinks =  size(linksInfo, 2);
     linkLens = phyNetParams.linksLens;
     finTime = simulationParams.finishTime;
     debMode = simulationParams.debugMode;
     linksInfo = logNetParams.linksInfo;
+    numLinks =  size(linksInfo, 2);
+
     
     %SIFS = cell2mat((cellfun(@(s)s.SIFS, devsParams,'uni',0)));
     %SlotTime = cell2mat((cellfun(@(s)s.ST, devsParams,'uni',0)));
@@ -36,7 +36,6 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     % nextSend = ones(1, numDevs);
     
     % empty queues for the packets the devices want to send
-    queues = cell(100, numDevs); % TODO: insure - 100 cells in a packet queue should be enough? and TODO: we have to implement this queues DS functions and the queue managment!
     simEventsList = {};
     devStates = cell(1, numDevs);
     % create the devices' states cell array
@@ -51,6 +50,8 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     % TODO: handle quques managment !
     % TODO: increase the time somehow when there are no events, to avoid an
     % infinite loop...
+    % TODO: think about the order of events which happens at the same time
+    % TODO: handle new events which happens at the same time
     
     % output preperations:
     packetsDS = {}; % packets documentation DS
@@ -80,7 +81,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                 % is in Debug mode
                 if(debMode == 1)
                     eventsDS{eventsCnt} = simEvent;
-                    eventsCnt = eventsCnt +1;
+                    eventsCnt = eventsCnt + 1;
                 end
                 
                 curStation = simEvent.station;
@@ -95,45 +96,43 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % now (by the device)
                         
                     case simEventType.START_SIM
-                        % TODO: create the packets queues for each link - not
-                        % sure how...
-                        % and then create 'GEN'PACK' simEvent to start with for each station 
-    %                         for i=1:numDevs
-    %                             pkt = generatePacket()
-    %                             nextGen(i) = nextGen(i)+1;
-    %                             e = createEvent(simEventType.GEN_PACK, randi(rndRange), i, pkt);
-    %                             % insert simEvents to the data structure, which we have to maintain sorted
-    %                             % accordding to the 'time' field.
-    %                             simEventsList{i} = e;
-    %                         end
+                        % create 'GEN'PACK' simEvent to start with for each
+                        % link, not each station!
+                        for l=1:numLinks
+                            pktLengh = randi([linksInfo{l}.minPktSize, linksInfo{l}.maxPktSize]); % randomize the packet size
+                            pktTime = randi(rndRange);
+                            pkt = generatePacket(linksInfo{l}, pktLengh , pktTime);
+                            % create and insert simEvents to the data structure, 
+                            % which we maintain sorted accordding to the 'time' field.
+                            opts = createOpts(pkt, timerType.NONE);
+                            genEve = createEvent(simEventType.GEN_PACK, pktTime, linksInfo{l}, opts);
+                            simEventsList{l} = genEve;
+                        end
                         
                     case simEventType.END_SIM
                         % make the outputs ready to be returned
                         output.packetsDS = packetsDS; 
                         output.collCnt = collCnt;
                         output.finTime = curTime;
-                        if(debMode ==1)
+                        if(debMode == 1)
                             output.eventsDS = eventsDS;
                         end
                         
                     case simEventType.GEN_PACK
-                        % assume only point to point links, so in the links
-                        % info. structs array, we have the only link the
-                        % device belongs info.
-                        pktLengh = randi([linksInfo{curStation}.minPktSize, linksInfo{curStation}.maxPktSize]); % randomize the packet size
-                        pkt = generatePkt(linksInfo{curStation}, pktLengh, curTime, curStation, linksInfo{curStation}.dst);
-                        devStates{curStation} = insertPacketToQueue(pkt, devStates{curStation}); % TODO: implement this function! 
+                        % happens per link, triggers a 'PACKET_EXISTS'
+                        % event for the src device of the link (which is
+                        % directional)
+                        % so, in the 'station' field of the GEN_PACK event,
+                        % there will be a link instead of a single station.
+                        pktLengh = randi([curStation.minPktSize, curStation.maxPktSize]); % randomize the packet size
+                        pkt = generatePkt(curStation.src, pktLengh, curTime, curStation.src, curStation.dst);
                         % update the device that it has a packet to send
-                        genDevEve = createEvent(devEventType.PACKET_EXISTS, curTime, curStation); 
-                        [devStates{curStation}, newSimEvents] = updateState(genDevEve, devStates{curStation}, curTime);
+                        genDevEve = createEvent(devEventType.PACKET_EXISTS, curTime, curStation.src); 
+                        [devStates{curStation.src}, newSimEvents] = updateState(genDevEve, devStates{curStation.src}, curTime);
                         simEventsList = saveNewEvents(newSimEvents, simEventsList);
                         % create a future GEN_PACK simulation event
-                        genSimEve = createEvent(simEventType.GEN_PACK, curTime + interArr(pkt, linksInfo{curStation}), curStation); % TODO: implement this function! 
+                        genSimEve = createEvent(simEventType.GEN_PACK, curTime + interArr(pkt, curStation), curStation.src); % TODO: implement this function! 
                         simEventsList = insertInOrder(simEventsList, genSimEve);
-                        
-                    case simEventType.PACKET_IN_QUQUE
-                   
-                    case simEventType.CHECK_QUEUE
                                             
                     case simEventType.MED_BUSY
                         % the medium became busy from some station's point of
@@ -182,15 +181,15 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         pos = 2; % for insertion to the newSimEvent later on
                         % create a recive event for the destination station 
                         opts = createOpts(simEvent.pkt, simEvent.timerType);
-                        recStartEve = createEvent(simEventType.REC_START, curTime + APD(curPkt.src, curPkt.dst), curPkt.dst, opts);
+                        recStartEve = createEvent(simEventType.REC_START, curTime + APD(curPkt.linkInfo.src, curPkt.linkInfo.dst), curPkt.linkInfo.dst, opts);
                         newSimEvents = cell(1, numDevs-1); % everyone but the src needs a new event
                         newSimEvents{1} = recStartEve;
                         % create a MED_BUSY event for all devices but the src
                         % and dst of the packet
                         for k=1:numDevs
-                            if(k~=curPkt.src && k~=curPkt.dst)
+                            if(k~=curPkt.linkInfo.src && k~=curPkt.linkInfo.dst)
                                 % the src and dst are handled differently
-                                newSimEvents{pos} = createEvent(simEventType.MED_BUSY, curTime + APD(curPkt.src, k), k, curPkt);
+                                newSimEvents{pos} = createEvent(simEventType.MED_BUSY, curTime + APD(curPkt.linkInfo.src, k), k, curPkt);
                                 pos = pos + 1;
                             end
                         end
@@ -206,15 +205,15 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         pos = 2; % for insertion to the newSimEvent later on
                         % create a recive event for the destination station 
                         opts = createOpts(simEvent.pkt, simEvent.timerType);
-                        recEndEve = createEvent(simEventType.REC_END, curTime + APD(curPkt.src, curPkt.dst), curPkt.dst, opts);
+                        recEndEve = createEvent(simEventType.REC_END, curTime + APD(curPkt.linkInfo.src, curPkt.linkInfo.dst), curPkt.linkInfo.dst, opts);
                         newSimEvents = cell(1, numDevs-1); % everyone but the src needs a new event
                         newSimEvents{1} = recEndEve;
                         % create a MED_BUSY event for all devices but the src
                         % and dst of the packet
                         for k=1:numDevs
-                            if(k~=curPkt.src && k~=curPkt.dst)
+                            if(k~=curPkt.linkInfo.src && k~=curPkt.linkInfo.dst)
                                 % the src and dst are handled differently
-                                newSimEvents{pos} = createEvent(simEventType.MED_FREE, curTime + APD(curPkt.src, k), k, curPkt);
+                                newSimEvents{pos} = createEvent(simEventType.MED_FREE, curTime + APD(curPkt.linkInfo.src, k), k, curPkt);
                                 pos = pos + 1;
                             end
                         end
