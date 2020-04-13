@@ -33,7 +33,9 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
     switch devState.curState
         
         case devStateType.IDLE
+            
             switch eventType
+            
                 case devEventType.PACKET_EXISTS 
                     newState.curPkt = getPktFromQueue(); % the packet which we have to send, TODO: implement this function
                     % there is a packet to send
@@ -64,7 +66,9 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
             end
                       
         case devStateType.START_CSMA
+            
             switch eventType
+            
                 case devEventType.MED_BUSY
                       newState.curState = devStateType.WAIT_FOR_IDLE;
                       % creare a 'CLEAR_TIMER' event for the DIFS timer which
@@ -90,24 +94,30 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
             end
             
         case devStateType.TRAN_PACK
+            
             switch eventType
+            
                 case devEventType.TRAN_END
                  newState.curState = devStateType.WAIT_FOR_ACK;
                  % create a 'SET_TIMER' event for the ACK TO
                  opts = createOpts(devState.curPkt, timerType.ACK);
                  newSimEvents{1} = createEvent(simEventType.SET_TIMER, curTime + devState.ackTO, devState.dev, opts); 
+            
                 case devEventType.REC_START
                  % collision!!
                  opts = createOpts(devEve.pkt, timerType.NONE); % the "received" packet is the one which collided
                  newSimEvents{1} = createEvent(simEventType.COLL_INC, curTime, devState.dev,opts);            
-             otherwise
+            
+                otherwise
                     if (handled == 0) 
                         fprintf('Illegal event') % TODO: handle the error
                     end
              end
                        
         case devStateType.WAIT_FOR_ACK
+           
             switch eventType
+           
                 case devEventType.REC_START 
                     if(devEve.pkt.type == packetType.ACK)
                         % OK, make sense
@@ -152,12 +162,15 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
             end
             
         case devStateType.REC_ACK
+           
             switch eventType
+           
                 case devEventType.MED_BUSY
                     % collision!!
                     opts = createOpts(devEve.pkt, timerType.NONE); % TODO: insure opts here contains the right packet
                     newSimEvents{1} = createEvent(simEventType.COLL_INC, curTime, devState.dev,opts);
                     newState.curState = devStateType.WAIT_FOR_ACK; % we have to keep waiting
+           
                 case devEventType.REC_END
                     if(checkACKValidity(devEve.pkt, devState) == 1) 
                       % create a 'CLEAR_TIMER' event for the ACK timer which
@@ -189,14 +202,17 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
                         end
                       end
                     end
-           otherwise
+           
+                otherwise
                     if (handled == 0) 
                         fprintf('Illegal event') % TODO: handle the error
                     end
              end
      
         case devStateType.WAIT_FOR_IDLE
+            
             switch eventType
+            
                 case devEventType.MED_FREE
                     if(newState.medCtr == 0)
                         % the medium is sensed as free
@@ -205,14 +221,17 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
                         opts = createOpts(emptyPacket(), timerType.DIFS);
                         newSimEvents{1} = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);
                     end
-            otherwise
+            
+                otherwise
                     if (handled == 0) 
                         fprintf('Illegal event') % TODO: handle the error
                     end
             end
             
         case devStateType.WAIT_DIFS
+            
             switch eventType
+            
                 case devEventType.MED_BUSY
                   newState.curState = devStateType.WAIT_FOR_IDLE;
                   % creare a 'CLEAR_TIMER' event for the DIFS timer which
@@ -231,14 +250,17 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
                     elseif(handled ==0)  
                         fprintf('Illegal event') % TODO: handle the error
                     end
-            otherwise
+            
+                otherwise
                     if (handled == 0) 
                         fprintf('Illegal event') % TODO: handle the error
                     end
             end
             
         case devStateType.BACKING_OFF
+            
             switch eventType
+            
                 case devEventType.TIMER_EXPIRED
                     % sanity check
                     if(devState.medCtr == 0 && devEve.timerType == timerType.BACKOFF)
@@ -250,6 +272,7 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
                         newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
                         newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.pktLenFunc(devState.curPkt), devState.dev, opts); % TODO: insure it works: calculating the transmission time according to the device's provided function
                     end
+            
                 case devEventType.MED_BUSY
                     % unfortunately, the medium became busy so update backoff
                     % and wait for idle
@@ -257,7 +280,8 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
                     newState.curBackoff = devState.curBackoff - (curTime - devState.startBackoffTime); % the remaining time to count
                     newState.startBackoffTime = -1;
 
-            otherwise
+            
+                otherwise
                     if (handled == 0) 
                         fprintf('Illegal event') % TODO: handle the error
                     end
@@ -265,7 +289,9 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
             end
             
         case devStateType.REC_PACK
+            
             switch eventType
+            
                 case devEventType.MED_BUSY
                     % collision!!
                     opts = createOpts(devEve.pkt, timerType.NONE);  
@@ -284,17 +310,21 @@ function [newState, newSimEvents] = updateState(devEve, devState, curTime)
                         newState.curState = devStateType.IDLE;
                     end
                  
-            otherwise
+            
+                otherwise
                     if (handled == 0) 
                         fprintf('Illegal event') % TODO: handle the error
                     end
             end
             
         case devStateType.SEND_ACK
+            
             switch eventType
+            
                 case devEventType.TRAN_END
                     newState.curState = devStateType.IDLE;
-           otherwise
+           
+                otherwise
                     if (handled == 0) 
                         fprintf('Illegal event') % TODO: handle the error
                     end

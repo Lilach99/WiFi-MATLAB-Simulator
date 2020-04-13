@@ -4,7 +4,7 @@ function [backoff] = randomizeBackoff(devState)
 
     if(devState.curBackoff == -1)
         % we have to randomize the backoff
-        backoff = devState.ST*rand(1, devState.curCWND);
+        backoff = devState.ST*randi(devState.curCWND);
     else
         % there is an active backoff already
         backoff = devState.curBackoff;
