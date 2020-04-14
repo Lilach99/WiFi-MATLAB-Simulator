@@ -5,7 +5,7 @@ function [event] = createEvent(type, time, station, opts)
     event.type = type;
     event.time = time;
     event.station = station;
-    event.pkt = packetType.NONE;
+    event.pkt = emptyPacket();
     event.timerType = timerType.NONE;
     if exist('opts','var')
       event.pkt = opts.pkt;

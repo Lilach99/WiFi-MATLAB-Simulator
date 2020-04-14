@@ -8,16 +8,14 @@ classdef simEventType < Simulink.IntEnumType
     % END_SIM should be done last
     enumeration
     START_SIM(1),
-    MED_BUSY(2),
-    MED_FREE(3),
+    REC_START(2),
+    REC_END(3),
     GEN_PACK(4),
     CLEAR_TIMER(5),
     TRAN_START(6),
     TRAN_END(7),
-    REC_START(8),
-    REC_END(9),
-    SET_TIMER(10),
-    COLL_INC(11),
-    END_SIM(12)
+    SET_TIMER(8),
+    COLL_INC(9),
+    END_SIM(10)
     end
 end

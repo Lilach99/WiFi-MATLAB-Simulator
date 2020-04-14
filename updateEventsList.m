@@ -1,4 +1,4 @@
-function [updatedList] = updateEventsList(newEvents, curTime)
+function [updatedList] = updateEventsList(newEvents, curTime, curTimeEvents)
     %add new events to the list if they happen at time 'curTime'
     %   useful for adding new events to the simulation events list, so we
     %   can handle them before increasing 'curTime'

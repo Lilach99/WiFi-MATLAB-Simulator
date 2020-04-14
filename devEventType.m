@@ -5,8 +5,6 @@ classdef devEventType < Simulink.IntEnumType
     TRAN_END(2),
     REC_START(3),
     REC_END(4),
-    TIMER_EXPIRED(5),
-    MED_BUSY(6),
-    MED_FREE(7)
+    TIMER_EXPIRED(5)
     end
 end

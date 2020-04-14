@@ -26,28 +26,18 @@ NumOfDevs = 2;
 
 % tests: 
 
-dev1P.SIFS = 16;
-dev1P.ST = 9;
-dev1P.numRet = 14;
-dev1P.ackDur = 14;
-dev1P.ackTO = 500;
-dev1P.pktLenFunc = @max;
+dev1P = createDevParams(1, 16, 9, 14, 14, 500, @abs); % abs is just some unary function, for testing
+dev2P = createDevParams(2, 16, 9, 14, 14, 1000, @abs);
 
-dev2P.SIFS = 16;
-dev2P.ST = 9;
-dev2P.numRet = 14;
-dev2P.ackDur = 14;
-dev2P.ackTO = 2000;
-dev2P.pktLenFunc = @max;
-
-
+link1 = createlinkInfo(1, 2, 5, 10, 200, 2000, 0);
+link2 = createlinkInfo(2, 1, 5, 10, 100, 900, 0);
 
 devsParams = {dev1P, dev2P};
 phyNetParams.numDevs = 2;
 phyNetParams.linksLens = [0, 10; 10, 0]; % in KMs
-logNetParams = sysConst.NONE;
-simulationParams.finishTime = 25;
-simulationParams.debugMode = 0;
+logNetParams.linksInfo = {link1, link2};
+simulationParams.finishTime = 50;
+simulationParams.debugMode = 1;
 
 
 
