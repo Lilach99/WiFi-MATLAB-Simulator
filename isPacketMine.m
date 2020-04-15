@@ -1,8 +1,8 @@
-function [isMine] = isPacketMine(pkt, dev, linksInfo)
+function [isMine] = isPacketMine(pkt, dev)
     %checks if a packet which arrived to a device is really destined to it
     %   compares the pkt.dst with the dev ID
     
-    if(pkt.linkInfo.dst == dev)
+    if(pkt.dst == dev)
         isMine = 1;
     else
         isMine = 0;

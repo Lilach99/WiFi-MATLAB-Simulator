@@ -5,6 +5,11 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
     %   caused this invocation, does the needed changes and/or events
     %   creations and returns the device's new state
     
+%     % for debugging
+%     disp(devState.dev);
+%     disp(devState.curState);
+%     disp(devEve.type);
+    
     newSimEvents = {};
     eventType = devEve.type;
     handled = 0; % a flag for handling the event, to avoid 'illegal event' error in some cases
@@ -24,11 +29,11 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
     % we also have to handle PACKET_EXISTS event here, insert to queue if
     % we are not IDLE
     if(eventType == devEventType.PACKET_EXISTS)
-        if(devState.curState ~= devStateType.IDLE)
             % we have to push the packet to the device's queue
             devState.queue = insertPacketToQueue(devState.queue, devEve.pkt);
             handled = 1; % only if it's 'IDLE' state we will actually start sensing later
-        end
+            % if it is idle - we will take the packet from the queue in the
+            % switch
     end
     
     switch devState.curState
@@ -102,7 +107,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         devState.curState = devStateType.TRAN_PACK;
                         opts = createOpts(devState.curPkt, timerType.NONE);
                         newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
-                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.pktLenFunc(devState.curPkt.length), devState.dev, opts); % TODO: now it does not work, we have to ninsure it works: calculating the transmission time according to the device's provided function
+                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.pktLenFunc(devState.curPkt.length, 10), devState.dev, opts); % TODO: now it does not work, we have to ninsure it works: calculating the transmission time according to the device's provided function, 10 is instead of the PHY rate...
                     elseif(handled == 0)
                         fprintf('Illegal event') 
                     end
@@ -378,8 +383,8 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         devState.recBytes = devState.recBytes + devEve.pkt.legth; % count the receives packet bytes
                         devState.curState = devStateType.SEND_ACK;
                         opts = createOpts(createACK(devEve.pkt, devState, curTime), timerType.NONE);
-                        newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
-                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.ackDur, devState.dev, opts); % TODO: calculate the ACK Duration
+                        newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime + SIFS, devState.dev, opts); % start to transmit the ACK after SIFS time; TODO: check if it's OK to change state to SEND_ACK although we actually start to send after SIFS time - in a sense of collsions handing - it should not happen in pTp links...
+                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + SIFS + devState.ackDur, devState.dev, opts); % TODO: calculate the ACK Duration
                         devState.curRecPkt = emptyPacket(); % collision counter shows 0
                         devState.curRecPkt = emptyPacket();
                     elseif(devState.isColl > 0)
@@ -387,6 +392,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         % properly, but we have to decrease the 'isColl'
                         % counter of the device for future receptions
                         devState.isColl = devState.isColl - 1;
+                        devState.curState = devStateType.IDLE;
                    else
                         % not valid packet - throw it
                         devState.curState = devStateType.IDLE;

@@ -61,11 +61,16 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
             curTime = simEventsList{1}.time;
             i = findLastCurEvent(simEventsList, curTime); % finds the last event in the list that happens now
             curSimEvents = sortByHandlingOrder(simEventsList(1:i)); % sorts the events according to their handling order
-            disp(curSimEvents);
             ind = 1;
             while(ind <= size(curSimEvents, 2)) % foreach simEvent in currentsimEvents, new events might be added to this list during the handling the original events
                 
                 simEvent = curSimEvents{ind}; % the struct
+                
+                if(debMode == 1)
+                    disp(simEvent.type);
+                    disp(simEvent.station);
+                    disp(simEvent.time);
+                end
                 % add the simEvent to the events documentation DS if the system
                 % is in Debug mode
                 if(debMode == 1)
@@ -88,13 +93,10 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % link, not each station!
                         genEvents = cell(1, numLinks);
                         for l=1:numLinks
-                            pktLengh = randi([linksInfo{l}.minPS, linksInfo{l}.maxPS]); % randomize the packet size
                             pktTime = randi(rndRange);
-                            pkt = generatePacket(linksInfo{l}, pktLengh , pktTime);
                             % create and insert simEvents to the data structure, 
                             % which we maintain sorted accordding to the 'time' field.
-                            opts = createOpts(pkt, timerType.NONE);
-                            genEve = createEvent(simEventType.GEN_PACK, pktTime, linksInfo{l}, opts);
+                            genEve = createEvent(simEventType.GEN_PACK, pktTime, l);
                             genEvents{l} = genEve;
                         end
                         simEventsList = saveNewEvents(genEvents, simEventsList);
@@ -115,16 +117,17 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % event for the src device of the link (which is
                         % directional)
                         % so, in the 'station' field of the GEN_PACK event,
-                        % there will be a link instead of a single station.
-                        pktLength = randi([curStation.minPS, curStation.maxPS]); % randomize the packet size
-                        pkt = generatePacket(curStation, pktLength , curTime);
+                        % there will be the link index in the array instead
+                        % of a single station's ID.
+                        pktLength = randi([linksInfo{curStation}.minPS, linksInfo{curStation}.maxPS]); % randomize the packet size
+                        pkt = generatePacket(curStation, pktLength , curTime, linksInfo{curStation}.src, linksInfo{curStation}.dst);
                         % update the device that it has a packet to send
-                        genDevEve = createEvent(devEventType.PACKET_EXISTS, curTime, curStation.src, createOpts(pkt, timerType.NONE)); 
-                        [devStates{curStation.src}, newSimEvents] = updateState(genDevEve, devStates{curStation.src}, curTime);
+                        genDevEve = createEvent(devEventType.PACKET_EXISTS, curTime, linksInfo{curStation}.src, createOpts(pkt, timerType.NONE)); 
+                        [devStates{linksInfo{curStation}.src}, newSimEvents] = updateState(genDevEve, devStates{linksInfo{curStation}.src}, curTime);
                         simEventsList = saveNewEvents(newSimEvents, simEventsList);
                         curSimEvents = updateEventsList(newSimEvents, curTime, curSimEvents); % insert new events which have to be handled right now to the current events list
                         % create a future GEN_PACK simulation event
-                        genSimEve = createEvent(simEventType.GEN_PACK, curTime + interArr(pkt, curStation), curStation.src); 
+                        genSimEve = createEvent(simEventType.GEN_PACK, curTime + interArr(pkt, linksInfo{curStation}), curStation); 
                         simEventsList = insertInOrder(simEventsList, genSimEve);
                                             
 %                     case simEventType.MED_BUSY
@@ -164,7 +167,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % in the past (if exists), by finding it in the 
                         % simEvents array - assuming there is only ONE timer
                         % event per station!
-                        timerInd = findEvent(curStation, simEventType.SET_TIMER, simEventsList);
+                        timerInd = findTimer(curStation, devEve.timerType, simEventsList);
                         % delete the whole cells of the SET_TIMER simEvent
                         simEventsList(timerInd) = [];
     
@@ -173,14 +176,17 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         curRet = devStates{curStation}.curRet;
                         % insert the packet to the packets DS
                         [packetsDS, curPkt] = insertPacketToDS(packetsDS, curRet, curPkt, curTime);
+                        devStates{curStation}.curPkt = curPkt; % same packet but with the updated index in the packetsDS!
                         % create a REC_START event for all devices but the src
                         % of the packet
                         opts = createOpts(curPkt, simEvent.timerType);
                         newSimEvents = cell(1, numDevs-1); % everyone but the src needs a new event
+                        newInd = 1;
                         for k=1:numDevs
                             if(k~=linksInfo{curPkt.linkInfo}.src)
                                 % the src does not receive the packet...
-                                newSimEvents{k} = createEvent(simEventType.REC_START, curTime + APD(linksInfo{curPkt.linkInfo}.src, k), k, opts);
+                                newSimEvents{newInd} = createEvent(simEventType.REC_START, curTime + APD(linksInfo{curPkt.linkInfo}.src, k), k, opts);
+                                newInd = newInd + 1;
                             end
                         end
                         % insert the new events to the simEvents list
@@ -188,19 +194,21 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         curSimEvents = updateEventsList(newSimEvents, curTime, curSimEvents); % insert new events which have to be handled right now to the current events list
     
                     case simEventType.TRAN_END
-                        curPkt = simEvent.pkt; % 'opts' exists in this case, and it contains the packet which is being transmitted right now
+                        curPkt = devStates{curStation}.curPkt;
                         curRet = devStates{curStation}.curRet;
                         % update the packet info in the packets DS
                         packetsDS = modifyPacketEndInDS(packetsDS, curRet, curPkt, curTime);
-                        linksDS{pkt.linkInd} = updateLinkDSCell(linksDS{pkt.linkInd}, curPkt, simEventType.TRAN_END); % update meta data in the linksDS
+                        linksDS{pkt.linkInfo} = updateLinkDSCell(linksDS{pkt.linkInfo}, curPkt, simEventType.TRAN_END); % update meta data in the linksDS
                         % create a REC_END event for all devices but the src
                         % of the packet
                         opts = createOpts(curPkt, simEvent.timerType);
                         newSimEvents = cell(1, numDevs-1); % everyone but the src needs a new event
+                        newInd = 1;
                         for k=1:numDevs
                             if(k~=linksInfo{curPkt.linkInfo}.src)
                                 % the src does not receive the packet...
-                                newSimEvents{k} = createEvent(simEventType.REC_END, curTime + APD(linksInfo{curPkt.linkInfo}.src, k), k, opts);
+                                newSimEvents{newInd} = createEvent(simEventType.REC_END, curTime + APD(linksInfo{curPkt.linkInfo}.src, k), k, opts);
+                                newInd = newInd + 1;
                             end
                         end
                         % also, create simEventType.TRAN_END event for the src device
@@ -227,7 +235,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         curSimEvents = updateEventsList(newSimEvents, curTime, curSimEvents); % insert new events which have to be handled right now to the current events list
                      
                     case simEventType.REC_END
-                        linksDS{pkt.linkInd} = updateLinkDSCell(linksDS{pkt.linkInd}, curPkt, simEventType.REC_END); % update meta data in the linksDS
+                        linksDS{pkt.linkInfo} = updateLinkDSCell(linksDS{pkt.linkInfo}, curPkt, simEventType.REC_END); % update meta data in the linksDS
                         opts = createOpts(simEvent.pkt, simEvent.timerType);
                         recEndEve = createEvent(devEventType.REC_END, curTime, curStation, opts);
                         [devStates{curStation}, newSimEvents] = updateState(recEndEve, devStates{curStation}, curTime);
@@ -244,17 +252,30 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         curRet = devStates{curStation}.curRet;
                         % update the packet info in the packets DS
                         packetsDS = modifyPacketCollInDS(packetsDS, curRet, curPkt, curTime);
-                        linksDS{pkt.linkInd} = updateLinkDSCell(linksDS{pkt.linkInd}, curPkt, simEventType.COLL_INC); % update meta data in the linksDS                        
+                        linksDS{pkt.linkInfo} = updateLinkDSCell(linksDS{pkt.linkInfo}, curPkt, simEventType.COLL_INC); % update meta data in the linksDS                        
              
                     otherwise
                         fprintf('invalid simEvent!') % we should not reach this line...
                 end
                 
                 % delete the whole cells of the handled simEvent from the lists
-                simEventsList(i) = []; 
-                curSimEvents(i) = [];
+                simInd = findEvent(simEvent, simEventsList); % the index of the event in the simEventsList and curEventsList might be different, due to the sortByHnadlingOrder
+                simEventsList(simInd) = []; 
+                curSimInd = findEvent(simEvent, curSimEvents);
+                curSimEvents(curSimInd) = [];
                 ind = ind + 1; % inc the index of curSimEvents cell  
             end       
+            
+        end
+    end
+    % pewpare output if we finished on time
+    if(curTime > finTime)
+        output.packetsDS = packetsDS; 
+        output.collCnt = collCnt;
+        output.finTime = finTime;
+        output.linksRes = linksDS;
+        if(debMode == 1)
+            output.eventsDS = eventsDS;
         end
     end
 end
