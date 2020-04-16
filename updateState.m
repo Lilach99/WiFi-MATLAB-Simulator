@@ -59,20 +59,12 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                 case devEventType.REC_START
                     if(isPacketMine(devEve.pkt, devState.dev) == 1) % check if the packet is destined to this device
                         if(devState.medCtr == 0)
-                            switch devEve.pkt.type
-                                case packetType.DATA
-                                    devState.curState = devStateType.REC_PACK; % if it's a DATA packet
-                                case packetType.ACK
-                                    devState.curState = devStateType.REC_ACK; % if it's an ACK packet
-                                otherwise
-                                    fprintf('error - empty packet was transmitted!')
-                            end
-                            devState.curRecPkt = devEve.pkt;
+                            devState = updateReceptionState(devState, devEve.pkt);  
                         else
                             % collision! a packet arrived while the medium is busy!
                             opts = createOpts(devEve.pkt, timerType.NONE);
                             newSimEvents{1} = createEvent(simEventType.COLL_INC, curTime, devState.dev,opts); 
-                            devState.curRecPkt = devEve.pkt;
+                            devState = updateReceptionState(devState, devEve.pkt);  % the device has to receive the packet anyway... he will really know about the collision at the end of reception
                             devState.isColl = devState.isColl + 1; % remembere this packet has been collided
 
                         end
@@ -91,16 +83,19 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
             switch eventType
                 
                 case devEventType.REC_START
-                    if(isPacketMine(devEve.pkt, devState.dev) == 0) % treat like "MED_BUSY"
-                        devState.curState = devStateType.WAIT_FOR_IDLE;
-                        % creare a 'CLEAR_TIMER' event for the DIFS timer which
+                        % create a 'CLEAR_TIMER' event for the DIFS timer which
                         % exists
                         opts = createOpts(emptyPacket(), timerType.DIFS);
                         newSimEvents{1} = createEvent(simEventType.CLEAR_TIMER, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
+                    if(isPacketMine(devEve.pkt, devState.dev) == 0) % treat like "MED_BUSY"
+                        devState.curState = devStateType.WAIT_FOR_IDLE;
                     else
-                        % this is a packet for us!
-                        % TODO: understand how to handle...
+                        % this is a packet for us! we have to receive it
+                        % and continue the transmitting attempt later
+                        devState = updateReceptionState(devState, devEve.pkt);  
+                        % TODO: insure the handling is OK   
                     end
+                    
                 case devEventType.TIMER_EXPIRED
                     % just for sanity check:
                     if(devEve.timerType == timerType.DIFS)
@@ -123,7 +118,8 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
             switch eventType
                 
                 case devEventType.TRAN_END
-                    devState.curState = devStateType.WAIT_FOR_ACK;
+                    devState.curState = devStateType.WAIT_FOR_ACK; % update the correspnding control bit
+                    devState.isWaitingForACK = 0; % the device is not waiting anymore
                     % create a 'SET_TIMER' event for the ACK TO
                     opts = createOpts(devState.curPkt, timerType.ACK);
                     newSimEvents{1} = createEvent(simEventType.SET_TIMER, curTime + devState.ackTO, devState.dev, opts);
@@ -163,6 +159,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                     if(devEve.timerType == timerType.ACK)
                         % ACK Timeout!!!
                         devState.curCWND = min(devState.curCWND*2, devState.CWmax);
+                        devState.isWaitingForACK = 0; % the device is not waiting anymore
                         if(devState.curRet < devState.numRet)
                             % we still have some retries
                             devState.curRet  = devState.curRet + 1;
@@ -216,6 +213,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                     
                 case devEventType.REC_END
                     if(checkACKValidity(devEve.pkt, devState) == 1)
+                        devState.isWaitingForACK = 0; % the device is not waiting anymore, the desired ACK arrived
                         % create a 'CLEAR_TIMER' event for the ACK timer which
                         % exists, because the packet already arrived
                         opts = createOpts(emptyPacket(), timerType.ACK);
@@ -224,32 +222,29 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         devState.sucSentBytes = devState.sucSentBytes + devState.curPkt.legth;
                         devState.curPkt = emptyPacket();
                         devState.curRet = 0;
-                        % check if we have more packets to send in our queue;
-                        % assume the sent packet is not in the queue anymore
-                        if(size(devState.queue, 2)==0)
-                            devState.curState = devStateType.IDLE;
-                        else
-                            % there is another packet to send! immediately start
-                            % the sensing process
-                            devState.curPkt = getPktFromQueue(devState.queue); % the packet which we have to send
-                            % there is a packet to send
-                            if(devState.medCtr == 0)
-                                % medium is free from our point of view
-                                devState.curState = devStateType.START_CSMA;
-                                % creare a 'SET_TIMER' event after DIFS time
-                                opts = createOpts(devState.curPkt, timerType.DIFS);
-                                newSimEvents{1} = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);
-                            else
-                                % medium is busy!
-                                devState.curState = devStateType.WAIT_FOR_IDLE;
-                            end
+                        [devState, newSimEvent, isNew] = handleNextPkt(devState); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                        if(isNew== 1)
+                             newSimEvents{2} = newSimEvent; % insert the new event to the array
                         end
-                        devState.curRecPkt = emptyPacket();
+                        
                     elseif(devState.isColl > 0)
                         % it is a collided packet so we cannot receive it
                         % properly, but we have to decrease the 'isColl'
                         % counter of the device for future receptions
                         devState.isColl = devState.isColl - 1;
+                        [devState, newSimEvent, isNew] = handleNextPkt(devState); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                        if(isNew== 1)
+                             newSimEvents{1} = newSimEvent; % insert the new event to the array
+                        end
+                        
+                    elseif(devState.isWaitingForACK == 0)
+                        % the device is not waiting for ACK now, it might
+                        % be a retransmit attempt, so just ignore the ACK
+                        [devState, newSimEvent, isNew] = handleNextPkt(devState); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                        if(isNew== 1)
+                             newSimEvents{1} = newSimEvent; % insert the new event to the array
+                        end
+                        
                     else
                         fprintf('packet did not collide but still not valid');
                     end
@@ -274,10 +269,10 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                             newSimEvents{1} = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);
                         end
                     else
-                        % an illegal state!
-                        if (handled == 0)
-                            fprintf('Illegal event') 
-                        end
+                        % this is a packet for us! we have to receive it
+                        % and continue the transmitting attempt later
+                        devState = updateReceptionState(devState, devEve.pkt);  
+                        % TODO: insure the handling is OK  
                     end
                     
                 otherwise
@@ -291,15 +286,17 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
             switch eventType
                 
                 case devEventType.REC_START
+                      % create a 'CLEAR_TIMER' event for the DIFS timer which
+                      % exists
+                      opts = createOpts(emptyPacket(), timerType.DIFS);
+                      newSimEvents{1} = createEvent(simEventType.CLEAR_TIMER, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
                     if(isPacketMine(devEve.pkt, devState.dev) == 0) % treat like "MED_BUSY"
                         devState.curState = devStateType.WAIT_FOR_IDLE;
-                        % creare a 'CLEAR_TIMER' event for the DIFS timer which
-                        % exists
-                        opts = createOpts(emptyPacket(), timerType.DIFS);
-                        newSimEvents{1} = createEvent(simEventType.CLEAR_TIMER, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
                     else
-                        % this is a packet for us!
-                        % TODO: understand how to handle...
+                        % this is a packet for us! we have to receive it
+                        % and continue the transmitting attempt later
+                        devState = updateReceptionState(devState, devEve.pkt);  
+                        % TODO: insure the handling is OK  
                     end
                     
                 case devEventType.TIMER_EXPIRED
@@ -337,6 +334,11 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                     end
                     
                 case devEventType.REC_START
+                      % create a 'CLEAR_TIMER' event for the BACKOFF timer 
+                      % which exists
+                      opts = createOpts(emptyPacket(), timerType.BACKOFF);
+                      newSimEvents{1} = createEvent(simEventType.CLEAR_TIMER, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
+                   
                     if(isPacketMine(devEve.pkt, devState.dev) == 0) % treat like "MED_BUSY"
                         % unfortunately, the medium became busy so update backoff
                         % and wait for idle
@@ -344,8 +346,10 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         devState.curBackoff = devState.curBackoff - (curTime - devState.startBackoffTime); % the remaining time to count
                         devState.startBackoffTime = -1;
                     else
-                        % this is a packet for us!
-                        % TODO: understand how to handle...
+                        % this is a packet for us! we have to receive it
+                        % and continue the transmitting attempt later
+                        devState = updateReceptionState(devState, devEve.pkt);  
+                        % TODO: insure the handling is OK  
                     end
                                             
                 otherwise
@@ -378,24 +382,33 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                     % TODO: insure the above mechanism works!!!
                     
                 case devEventType.REC_END
-                    if(checkPackValidity(devState, packet))
+                    if(checkPackValidity(devState, devEve.pkt))
                         % valid packet
-                        devState.recBytes = devState.recBytes + devEve.pkt.legth; % count the receives packet bytes
+                        devState.recBytes = devState.recBytes + devEve.pkt.length; % count the receives packet bytes
                         devState.curState = devStateType.SEND_ACK;
                         opts = createOpts(createACK(devEve.pkt, devState, curTime), timerType.NONE);
-                        newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime + SIFS, devState.dev, opts); % start to transmit the ACK after SIFS time; TODO: check if it's OK to change state to SEND_ACK although we actually start to send after SIFS time - in a sense of collsions handing - it should not happen in pTp links...
-                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + SIFS + devState.ackDur, devState.dev, opts); % TODO: calculate the ACK Duration
+                        newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime + devState.SIFS, devState.dev, opts); % start to transmit the ACK after SIFS time; TODO: check if it's OK to change state to SEND_ACK although we actually start to send after SIFS time - in a sense of collsions handing - it should not happen in pTp links...
+                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.SIFS + devState.ackDur, devState.dev, opts); % TODO: calculate the ACK Duration
                         devState.curRecPkt = emptyPacket(); % collision counter shows 0
-                        devState.curRecPkt = emptyPacket();
+                        % we do not have to use handleNextPkt because first
+                        % we have to send ACK on the valid received one
+                        
                     elseif(devState.isColl > 0)
                         % it is a collided packet so we cannot receive it
                         % properly, but we have to decrease the 'isColl'
                         % counter of the device for future receptions
                         devState.isColl = devState.isColl - 1;
-                        devState.curState = devStateType.IDLE;
+                        [devState, newSimEvent, isNew] = handleNextPkt(devState); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                        if(isNew == 1)
+                             newSimEvents{1} = newSimEvent; % insert the new event to the array
+                        end
+                        
                    else
                         % not valid packet - throw it
-                        devState.curState = devStateType.IDLE;
+                        [devState, newSimEvent, isNew] = handleNextPkt(devState); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                        if(isNew == 1)
+                             newSimEvents{1} = newSimEvent; % insert the new event to the array
+                        end
                         fprintf('packet did not collide but still not valid');
                     end
     
@@ -410,7 +423,11 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
             switch eventType
                 
                 case devEventType.TRAN_END
-                    devState.curState = devStateType.IDLE;
+                    % handle the next packet to send, if exists
+                    [devState, newSimEvent, isNew] = handleNextPkt(devState); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                    if(isNew == 1)
+                         newSimEvents{1} = newSimEvent; % insert the new event to the array
+                    end
                     
                 case devEventType.REC_START
                     if(isPacketMine(devEve.pkt, devState.dev) == 1) % check if the packet is destined to this device

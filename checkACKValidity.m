@@ -4,8 +4,9 @@ function [isValid] = checkACKValidity(packet, devState)
     %   is the packet destined to this device?
     %   is the packet an ACK packet?
     %   is this a packet which did not collided?
+    %   is the device waiting for ACK now? if not, it should ignore the packet
     
-    if(packet.type == packetType.ACK && packet.linkIndo.dst == devState.dev && devState.isColl == 0)
+    if(packet.type == packetType.ACK && packet.linkIndo.dst == devState.dev && devState.isColl == 0 && devState.isWaitingForACK == 1)
         isValid = 1;
     else
         isValid = 0;

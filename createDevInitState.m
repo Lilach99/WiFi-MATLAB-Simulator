@@ -10,7 +10,8 @@ function [devState] = createDevInitState(devParams)
     devState.lostBytes = 0; % number of lost bytes (which the device failed to send)
     devState.curPkt = emptyPacket(); % the packet that the station is trying to transmit using CSMA/CA or the packet that the station is transmitting now
     devState.curRecPkt = emptyPacket(); 
-
+    devState.isWaitingForACK = 0; % a control bit which should be 1 iff the device is waiting for ACK (otherwise it's 0)
+    
     devState.queue = createQueue(100); % the packets queue of the device, 100 is the intial size, it may grow
     devState.curRet = 0; % number of retreis on the current packet
     devState.curBackoff = -1; % -1 stands for no ongoing backoff, the number is the amount of time we have to wait from now

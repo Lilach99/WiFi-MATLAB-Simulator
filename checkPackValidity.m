@@ -5,7 +5,7 @@ function [isValid] = checkPackValidity(devState, packet)
     %   is it a data packet?
     %   is this a packet which did not collided?
     
-    if(packet.linkInfo.dst == devState.dev && packet.type == packetType.DATA && devState.isColl == 0)
+    if(packet.dst == devState.dev && packet.type == packetType.DATA && devState.isColl == 0)
         isValid = 1;
     else
         isValid = 0;
