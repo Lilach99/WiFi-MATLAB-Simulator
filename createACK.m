@@ -5,7 +5,7 @@ function [ACKpkt] = createACK(packet, devState, timeStamp)
     ACKpkt.type = packetType.ACK;
     ACKpkt.src = devState.dev;
     ACKpkt.dst = packet.src;
-    ACKpkt.legth = 14; % in bytes
+    ACKpkt.length = 14; % in bytes
     ACKpkt.timeStamp = timeStamp;
 
 end

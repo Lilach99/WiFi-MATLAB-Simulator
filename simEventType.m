@@ -1,7 +1,7 @@
  % creates a mapping between devices' events names and numbers:
 classdef simEventType < Simulink.IntEnumType
     % the events are ordered according to their "importance" - meaning the
-    % order in which we have to handle them
+    % order in which we have to handle them !!
     % this is important, because some events effects the others if they
     % happen at the same time - like MED_BUSY and MED_FREE
     % START_SIM has to be done before anything else

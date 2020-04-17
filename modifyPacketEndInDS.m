@@ -4,6 +4,6 @@ function [packetsDS] = modifyPacketEndInDS(packetsDS, curRet, packet, endTime)
     
     % a pd for this packet already exists, so just modify the needed 'tran'
     % struct in the pd.trans array
-    packetsDS{packet.ind}.trans{curRet+1}.end = endTime;
+    packetsDS{packet.ind}.trans{curRet + 1}.end = endTime;
     
 end

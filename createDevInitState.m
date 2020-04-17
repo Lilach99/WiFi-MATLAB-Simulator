@@ -2,7 +2,6 @@ function [devState] = createDevInitState(devParams)
     %creates an initialized struct for the input station's state
     %   gets the station and returns its state struct
     
-
     devState.medCtr = 0; % will be 0 if no ones uses the medium right now
     devState.curState = devStateType.IDLE; % state from the state machine
     devState.sucSentBytes = 0; % Number of packets/bytes it successfully sent until now
@@ -11,7 +10,8 @@ function [devState] = createDevInitState(devParams)
     devState.curPkt = emptyPacket(); % the packet that the station is trying to transmit using CSMA/CA or the packet that the station is transmitting now
     devState.curRecPkt = emptyPacket(); 
     devState.isWaitingForACK = 0; % a control bit which should be 1 iff the device is waiting for ACK (otherwise it's 0)
-    
+    devState.isACKToExp = 0; % a control it which should be 1 if an ACK TO occurred during ACK reception
+                        
     devState.queue = createQueue(100); % the packets queue of the device, 100 is the intial size, it may grow
     devState.curRet = 0; % number of retreis on the current packet
     devState.curBackoff = -1; % -1 stands for no ongoing backoff, the number is the amount of time we have to wait from now

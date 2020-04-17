@@ -4,7 +4,6 @@ import mlreportgen.dom.*;
 numPackets = 10;
 packetSize = 1460; % In bytes
 
-
 ST=9; % In microseconds
 SIFS=16; % In microseconds
 ackSize=14; % In bytes, according to page 405 in the standard
@@ -26,8 +25,8 @@ NumOfDevs = 2;
 
 % tests: 
 
-dev1P = createDevParams(1, 16, 9, 14, 14, 500, @pktLengthFunc); % abs is just some unary function, for testing
-dev2P = createDevParams(2, 16, 9, 14, 14, 1000, @pktLengthFunc);
+dev1P = createDevParams(1, 16, 9, 14, 14, 50, @pktLengthFunc); % abs is just some unary function, for testing
+dev2P = createDevParams(2, 16, 9, 14, 14, 50, @pktLengthFunc);
 
 link1 = createlinkInfo(1, 2, 5, 10, 200, 2000, 0);
 link2 = createlinkInfo(2, 1, 5, 10, 100, 900, 0);
@@ -38,6 +37,9 @@ phyNetParams.linksLens = [0, 10000; 10000, 0]; % in meters
 logNetParams.linksInfo = {link1, link2};
 simulationParams.finishTime = 200;
 simulationParams.debugMode = 1;
+
+[output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simulationParams);
+
 
 
 

@@ -1,6 +1,7 @@
 function [wantedEventInd] = findEvent(e, eventsList)
     % finds an event from the specified type of the specified station
     %   returns the index of the wanted event if exists
+    
     eventTypesEnums = cellfun(@(s)s.type, eventsList,'uni',0);
     eventTypeNums = cellfun(@(s)double(s), eventTypesEnums,'uni',0); 
     eventsTypes = cell2mat(eventTypeNums);

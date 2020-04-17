@@ -1,4 +1,4 @@
-function [devState, newSimEvent, isNew] = handleNextPkt(devState)
+function [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime)
     %handle the next packet to send, if exists
     %   check if we have more packets to send in our queue; assume the sent 
     %   packet is not in the queue anymore
@@ -12,7 +12,7 @@ function [devState, newSimEvent, isNew] = handleNextPkt(devState)
         % receive a packt so we have to continue the procedure)
         if(devState.medCtr == 0)
             % medium is free from our point of view
-            devState.curState = devStateType.START_CSMA; % TODO: check if it has to be this state or WAIT_DISF state... to continue backoff or start a new one
+            devState.curState = devStateType.WAIT_DIFS; % TODO: insure it has to be WAIT_DIFS state... to continue backoff or start a new one
             % creare a 'SET_TIMER' event after DIFS time
             opts = createOpts(devState.curPkt, timerType.DIFS);
             newSimEvent = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);
@@ -25,6 +25,7 @@ function [devState, newSimEvent, isNew] = handleNextPkt(devState)
     elseif(size(devState.queue, 2)==0)
         % we are not trying to send a packet now and our queue is empty
         devState.curState = devStateType.IDLE;
+        devState.curPkt = emptyPkt();
         
     else
         % there is another packet to send! immediately start
@@ -33,7 +34,7 @@ function [devState, newSimEvent, isNew] = handleNextPkt(devState)
         % there is a packet to send
         if(devState.medCtr == 0)
             % medium is free from our point of view
-            devState.curState = devStateType.START_CSMA; % TODO: check if it has to be this state or WAIT_DISF state... to continue backoff or start a new one
+            devState.curState = devStateType.WAIT_DIFS; % TODO: check if it has to be this state or WAIT_DISF state... to continue backoff or start a new one
             % creare a 'SET_TIMER' event after DIFS time
             opts = createOpts(devState.curPkt, timerType.DIFS);
             newSimEvent = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);
