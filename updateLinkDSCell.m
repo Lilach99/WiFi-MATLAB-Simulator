@@ -26,11 +26,14 @@ function [linksDSCell] = updateLinkDSCell(linksDSCell, pkt, eventType)
             end
             
             case simEventType.COLL_INC
+            % it has been collided rather than received successfully!
             switch pkt.type
                 case packetType.DATA
                     linksDSCell.dataCollCtr = linksDSCell.dataCollCtr + pkt.length;
+                    linksDSCell.dataRecCtr = linksDSCell.dataRecCtr - pkt.length;
                 case packetType.ACK
                     linksDSCell.ctrlCollCtr = linksDSCell.ctrlCollCtr + pkt.length;
+                    linksDSCell.ctrlRecCtr = linksDSCell.ctrlRecCtr - pkt.length;                
                 otherwise
                     % do nothing
             end

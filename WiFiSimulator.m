@@ -251,9 +251,14 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         curSimEvents = updateEventsList(newSimEvents, curTime, curSimEvents); % insert new events which have to be handled right now to the current events list
                      
                     case simEventType.REC_END
-                        desLinkInd = getLinkInfoOfPacket(curPkt, linksInfo);
-                        linksDS{desLinkInd} = updateLinkDSCell(linksDS{desLinkInd}, curPkt, simEventType.REC_END); % update meta data in the linksDS
-                        opts = createOpts(simEvent.pkt, simEvent.timerType);
+                        curPkt = simEvent.pkt;
+                        if(curPkt.dst == simEvent.station)
+                            % this is a packet for us so we have to update
+                            % its details in the linksInfo DS
+                             desLinkInd = getLinkInfoOfPacket(curPkt, linksInfo);
+                            linksDS{desLinkInd} = updateLinkDSCell(linksDS{desLinkInd}, curPkt, simEventType.REC_END); % update meta data in the linksDS
+                        end
+                        opts = createOpts(curPkt, simEvent.timerType);
                         recEndEve = createEvent(devEventType.REC_END, curTime, curStation, opts);
                         [devStates{curStation}, newSimEvents] = updateState(recEndEve, devStates{curStation}, curTime);
                         % insert the new events that the device might triggered 
@@ -263,7 +268,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                                      
                     case simEventType.COLL_INC
                         % increase the collisions counter by 1
-                        collCnt = collCnt +1;
+                        collCnt = collCnt + 1;
                         % save packet info to the documentation DS
                         curPkt = simEvent.pkt; % should exists
                         curRet = devStates{curStation}.curRet;
@@ -271,9 +276,13 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                             % update the packet info in the packets DS
                             packetsDS = modifyPacketCollInDS(packetsDS, curRet, curPkt, curTime);
                         end
-                        desLinkInd = getLinkInfoOfPacket(curPkt, linksInfo);
-                        linksDS{desLinkInd} = updateLinkDSCell(linksDS{desLinkInd}, curPkt, simEventType.COLL_INC); % update meta data in the linksDS                        
-             
+                        if(curPkt.dst == simEvent.station)
+                            % this is a packet for us so we have to update
+                            % its details in the linksInfo DS 
+                             desLinkInd = getLinkInfoOfPacket(curPkt, linksInfo);
+                             linksDS{desLinkInd} = updateLinkDSCell(linksDS{desLinkInd}, curPkt, simEventType.COLL_INC); % update meta data in the linksDS
+                        end
+                        
                     otherwise
                         fprintf('invalid simEvent!') % we should not reach this line...
                 end

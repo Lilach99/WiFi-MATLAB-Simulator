@@ -162,6 +162,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                                 devState.curRecPkt = devEve.pkt;
                             else
                                 % assume we cannot receive a packet here
+                                fprintf('error! received packet during waiting for ACK');
                             end
                         else
                             % collision! a packet arrived while the medium is busy!
@@ -174,14 +175,13 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                           
                     end
                     % if it's not for this device - do nothing
-                    
-                    
+                     
                 case devEventType.TIMER_EXPIRED
                     % sanity check
                     if(devEve.timerType == timerType.ACK)
                         % ACK Timeout!!!
                         [devState, newSimEvents] = retransmitTry(devState, curTime);
-                    elseif(handled ==0)
+                    elseif(handled == 0)
                         fprintf('Illegal event') 
                     end
                     
@@ -198,13 +198,14 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                 case devEventType.REC_START
                     % anyway it's a collision!! no matter if the packet is
                     % for us or not!
-                    [devState, newSimEvents] = handleCollidedReception(devState, devEve);
+                    [devState, newSimEvents] = handleCollidedReception(devState, devEve, curTime);
                     
                 case devEventType.REC_END
                     if(checkPackValidity(devState, devEve.pkt))
                         % valid packet
                         devState.recBytes = devState.recBytes + devEve.pkt.length; % count the receives packet bytes
                         devState.curState = devStateType.SEND_ACK;
+                        % devState.curPkt = createACK(devEve.pkt, devState, curTime);
                         opts = createOpts(createACK(devEve.pkt, devState, curTime), timerType.NONE);
                         newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime + devState.SIFS, devState.dev, opts); % start to transmit the ACK after SIFS time; TODO: check if it's OK to change state to SEND_ACK although we actually start to send after SIFS time - in a sense of collsions handing - it should not happen in pTp links...
                         newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.SIFS + devState.ackDur, devState.dev, opts); % TODO: calculate the ACK Duration
@@ -256,7 +257,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                 case devEventType.REC_START
                     % anyway it's a collision!! no matter if the packet is
                     % for us or not!
-                    [devState, newSimEvents] = handleCollidedReception(devState, devEve);
+                    [devState, newSimEvents] = handleCollidedReception(devState, devEve, curTime);
 
                 case devEventType.REC_END
                     if(checkACKValidity(devEve.pkt, devState) == 1)

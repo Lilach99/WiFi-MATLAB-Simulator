@@ -1,6 +1,6 @@
 function [devState, newSimEvents] = retransmitTry(devState, curTime)
     %handled a retransmit try in case of an ACK timeout
-    
+    newSimEvents=[];
     devState.curCWND = min(devState.curCWND*2, devState.CWmax);
     devState.isWaitingForACK = 0; % the device is not waiting anymore
     if(devState.curRet < devState.numRet)
