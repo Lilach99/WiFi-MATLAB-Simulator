@@ -5,5 +5,6 @@ function [pkt, queue] = getPktFromQueue(queue)
    pkt = queue.fifo{1}; % the first packet in the queue
    queue.fifo = queue.fifo(2:size(queue.fifo, 2)); % remove the first packet
    queue.tail = queue.tail - 1; % all of the cells are "shifted left"
+   % the queue is empty iff tail = 0 
     
 end

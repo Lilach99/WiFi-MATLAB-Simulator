@@ -22,10 +22,10 @@ function [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime)
             devState.curState = devStateType.WAIT_FOR_IDLE;
         end
         
-    elseif(size(devState.queue, 2) == 0)
+    elseif(devState.queue.tail == 1)
         % we are not trying to send a packet now and our queue is empty
         devState.curState = devStateType.IDLE;
-        devState.curPkt = emptyPkt();
+        devState.curPkt = emptyPacket();
         
     else
         % there is another packet to send! immediately start

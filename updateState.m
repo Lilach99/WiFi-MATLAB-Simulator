@@ -417,6 +417,8 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                     else
                         % this is a packet for us! we have to receive it
                         % and continue the transmitting attempt later
+                        devState.curBackoff = devState.curBackoff - (curTime - devState.startBackoffTime); % the remaining time to count
+                        devState.startBackoffTime = -1;
                         devState = updateReceptionState(devState, devEve.pkt);  
                         % TODO: insure the handling is OK  
                     end
