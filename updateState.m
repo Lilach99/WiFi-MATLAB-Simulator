@@ -24,8 +24,8 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
     elseif((eventType == devEventType.REC_END) && (isPacketMine(devEve.pkt, devState.dev) == 0)) % treat like "MED_FREE", bacause the packet is NOT destined to this device
         devState.medCtr = devState.medCtr - 1;
         handled = 1;
-    elseif((eventType == devEventType.REC_END) && (isPacketMine(devEve.pkt, devState.dev) == 1) && (devState.isColl > 0))
-        % "end of reception" of a collided packet for us, treat as 'MED_FREE'
+    elseif((eventType == devEventType.REC_END) && (isPacketMine(devEve.pkt, devState.dev) == 1) && (devState.isColl > 1))
+        % "end of reception" of a collided packet for us, not the original we started to receive, treat as 'MED_FREE' 
         devState.medCtr = devState.medCtr - 1;
         devState.isColl = devState.isColl - 1;
         handled = 1;
@@ -108,7 +108,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         devState.curState = devStateType.TRAN_PACK;
                         opts = createOpts(devState.curPkt, timerType.NONE);
                         newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
-                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.pktLenFunc(devState.curPkt.length, 10), devState.dev, opts); % TODO: now it does not work, we have to ninsure it works: calculating the transmission time according to the device's provided function, 10 is instead of the PHY rate...
+                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.pktLenFunc(devState.curPkt.length, devState.curPkt.link.phyRate), devState.dev, opts); % TODO: now it does not work, we have to ninsure it works: calculating the transmission time according to the device's provided function, 10 is instead of the PHY rate...
                     elseif(handled == 0)
                         fprintf('Illegal event') 
                     end
@@ -161,7 +161,9 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                                 devState.curState = devStateType.REC_ACK;
                                 devState.curRecPkt = devEve.pkt;
                             else
-                                % assume we cannot receive a packet here
+                                % TODO: we have to receive it, and afterwards
+                                % return to this state if the ACK timer did
+                                % not expired yet
                                 fprintf('error! received packet during waiting for ACK');
                             end
                         else
@@ -208,7 +210,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         % devState.curPkt = createACK(devEve.pkt, devState, curTime);
                         opts = createOpts(createACK(devEve.pkt, devState, curTime), timerType.NONE);
                         newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime + devState.SIFS, devState.dev, opts); % start to transmit the ACK after SIFS time; TODO: check if it's OK to change state to SEND_ACK although we actually start to send after SIFS time - in a sense of collsions handing - it should not happen in pTp links...
-                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.SIFS + devState.ackDur, devState.dev, opts); % TODO: calculate the ACK Duration
+                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.SIFS + devState.ackLenFunc(devEve.pkt.link.phyRate), devState.dev, opts); % TODO: check if we have to take min(pkt.link.rate, opposite link rate)... and if so - how??
                         devState.curRecPkt = emptyPacket(); % collision counter shows 0
                         % we do not have to use handleNextPkt because first
                         % we have to send ACK on the valid received one
@@ -399,7 +401,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         devState.startBackoffTime = -1; % no active backoff
                         opts = createOpts(devState.curPkt, timerType.NONE);
                         newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
-                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.pktLenFunc(devState.curPkt), devState.dev, opts); % TODO: insure it works: calculating the transmission time according to the device's provided function (the handling works OK, we just have to implement the function)
+                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.pktLenFunc(devState.curPkt.length, devState.curPkt.link.phyRate), devState.dev, opts); % TODO: insure it works: calculating the transmission time according to the device's provided function (the handling works OK, we just have to implement the function)
                     end
                     
                 case devEventType.REC_START

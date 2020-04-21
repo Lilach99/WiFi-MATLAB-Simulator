@@ -3,8 +3,8 @@ function [linkI] = createlinkInfo(src, dst, phyRate, dataRate, minPS, maxPS, pkt
     %parameters
     linkI.src = src;
     linkI.dst = dst;
-    linkI.phyRate = phyRate;
-    linkI.dataRate = dataRate;
+    linkI.phyRate = phyRate * 1000000;
+    linkI.dataRate = dataRate * 1000000;
     linkI.maxPS = maxPS;
     linkI.minPS = minPS;
     linkI.pktDropoffRate = pktDropoffRate; 

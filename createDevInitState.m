@@ -27,9 +27,8 @@ function [devState] = createDevInitState(devParams)
     devState.ST = devParams.ST;
     devState.DIFS = devParams.SIFS + 2*devParams.ST;
     devState.numRet = devParams.numRet;
-    devState.ackDur = devParams.ackDur;
+    devState.ackLenFunc = devParams.ackLenFunc;
     devState.ackTO = devParams.ackTO;
-    devState.pktLenFunc = devParams.pktLenFunc;
-    
+    devState.pktLenFunc = devParams.pktLenFunc;    
     
 end

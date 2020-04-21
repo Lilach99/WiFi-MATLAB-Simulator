@@ -6,7 +6,6 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     %   effective link throughput and the percentage of collided packet,
     %  and also a DS contains information about the packets transmission times.
   
-    
     % pkt: a struct which contains its lenght (in bytes), its source 
     % and its destination and its type (control/data)
     
@@ -32,7 +31,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     c = 299704644.54; % light speed in air in m/sec, CONSTANT
     curTime = 0; % time in simulation, in microseconds
     APD = (linkLens*1000)/c; % air propagation delay in seconds, a matrix of APDs according to the distances between the devices - APD for devices i and j can be found in cell [i, j] in the array
-    rndRange = finTime/5; % the range of random first sending time, in microseconds, TODO: check how to choose it
+    rndRange = finTime/2; % the range of random first sending time, in microseconds, TODO: check how to choose it
     % nextSend = ones(1, numDevs);
     
     % empty queues for the packets the devices want to send
@@ -120,7 +119,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % there will be the link index in the array instead
                         % of a single station's ID.
                         pktLength = randi([linksInfo{curStation}.minPS, linksInfo{curStation}.maxPS]); % randomize the packet size
-                        pkt = generatePacket(curStation, pktLength , curTime, linksInfo{curStation}.src, linksInfo{curStation}.dst);
+                        pkt = generatePacket(curStation, linksInfo{curStation}, pktLength , curTime, linksInfo{curStation}.src, linksInfo{curStation}.dst);
                         % update the device that it has a packet to send
                         genDevEve = createEvent(devEventType.PACKET_EXISTS, curTime, linksInfo{curStation}.src, createOpts(pkt, timerType.NONE)); 
                         [devStates{linksInfo{curStation}.src}, newSimEvents] = updateState(genDevEve, devStates{linksInfo{curStation}.src}, curTime);
@@ -255,7 +254,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         if(curPkt.dst == simEvent.station)
                             % this is a packet for us so we have to update
                             % its details in the linksInfo DS
-                             desLinkInd = getLinkInfoOfPacket(curPkt, linksInfo);
+                            desLinkInd = getLinkInfoOfPacket(curPkt, linksInfo);
                             linksDS{desLinkInd} = updateLinkDSCell(linksDS{desLinkInd}, curPkt, simEventType.REC_END); % update meta data in the linksDS
                         end
                         opts = createOpts(curPkt, simEvent.timerType);

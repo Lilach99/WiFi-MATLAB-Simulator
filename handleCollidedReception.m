@@ -2,6 +2,7 @@ function [devState, newSimEvents] = handleCollidedReception(devState, devEve, cu
     %handles a collided packet reception, which happend during another
     %packet reception 
     
+    newSimEvents = [];
     eveInd = 1;
     % if it's the first collision with the current received 
     % packet, we have to count it, otherwise we had already
