@@ -22,6 +22,7 @@ function [packetsDS, packet] = insertPacketToDS(packetsDS, curRet, packet, start
         tran.coll = -1; % -1 stands for "we don't know yet or it's irrelevant"
         tran.end = -1;
         tran.reach = -1;
+        disp(curRet);
         packetsDS{packet.ind}.trans{curRet+1} = tran;
     end
     

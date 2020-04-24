@@ -1,4 +1,4 @@
-function [devState] = createDevInitState(devParams)
+function [devState] = createDevInitState(devParams, ackTO)
     %creates an initialized struct for the input station's state
     %   gets the station and returns its state struct
     
@@ -28,7 +28,7 @@ function [devState] = createDevInitState(devParams)
     devState.DIFS = devParams.SIFS + 2*devParams.ST;
     devState.numRet = devParams.numRet;
     devState.ackLenFunc = devParams.ackLenFunc;
-    devState.ackTO = devParams.ackTO;
+    devState.ackTO = ackTO;
     devState.pktLenFunc = devParams.pktLenFunc;    
     
 end

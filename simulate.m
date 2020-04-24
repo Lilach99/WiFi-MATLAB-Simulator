@@ -17,7 +17,7 @@ phyNetParams.numDevs = 4;
 phyNetParams.linksLens = [0, 10, 20, 22.36; 10, 0, 22.36, 20; 20, 22.36, 0, 10; 22.36, 20, 10, 0]; % in KMs
 logNetParams.linksInfo = {link1, link2, link3, link4};
 simulationParams.finishTime = 10;
-simulationParams.debugMode = 0;
+simulationParams.debugMode = 1;
 
 [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simulationParams);
 

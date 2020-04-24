@@ -39,7 +39,9 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     devStates = cell(1, numDevs);
     % create the devices' states cell array
     for i=1:numDevs
-        devStates{i} = createDevInitState(devsParams{i});
+        % ACK Timeout = 2 * Air Propagation Time (max) + SIFS + Time to transmit 14 byte ACK frame 
+        ackTO = 2*max(APD(i, :)) + devsParams{i}.SIFS + devsParams{i}.ackLenFunc(6); % according to the minimum PHY rate
+        devStates{i} = createDevInitState(devsParams{i}, ackTO);
     end
 
     % create the initial simEventType.START_SIM event for the simulation

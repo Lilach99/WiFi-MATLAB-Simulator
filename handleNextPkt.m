@@ -34,7 +34,7 @@ function [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime)
         % there is a packet to send
         if(devState.medCtr == 0)
             % medium is free from our point of view
-            devState.curState = devStateType.WAIT_DIFS; % TODO: check if it has to be this state or WAIT_DISF state... to continue backoff or start a new one
+            devState.curState = devStateType.START_CSMA; % TODO: verify it has to be this state or START_CSMA state... to start from the begining
             % creare a 'SET_TIMER' event after DIFS time
             opts = createOpts(devState.curPkt, timerType.DIFS);
             newSimEvent = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);

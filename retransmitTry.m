@@ -3,6 +3,7 @@ function [devState, newSimEvents] = retransmitTry(devState, curTime)
     newSimEvents=[];
     devState.curCWND = min(devState.curCWND*2, devState.CWmax);
     devState.isWaitingForACK = 0; % the device is not waiting anymore
+    devState.isACKToExp = 0;
     if(devState.curRet < devState.numRet)
         % we still have some retries
         devState.curRet  = devState.curRet + 1;
@@ -19,7 +20,9 @@ function [devState, newSimEvents] = retransmitTry(devState, curTime)
     else
         % no more retries!
         devState.curState = devStateType.IDLE;
-        devState.lostBytes = devState.lostBytes + 1; % save info about the lost packet
+        devState.lostBytes = devState.lostBytes + devState.curPkt.length; % save info about the lost packet
+        devState.curRet = 0;
+                
     end
     
 end
