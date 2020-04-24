@@ -21,7 +21,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     finTime = simulationParams.finishTime;
     debMode = simulationParams.debugMode;
     linksInfo = logNetParams.linksInfo;
-    numLinks =  size(linksInfo, 2);
+    numLinks = size(linksInfo, 2);
 
     
     %SIFS = cell2mat((cellfun(@(s)s.SIFS, devsParams,'uni',0)));
@@ -30,8 +30,8 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
 
     c = 299704644.54; % light speed in air in m/sec, CONSTANT
     curTime = 0; % time in simulation, in microseconds
-    APD = (linkLens*1000)/c; % air propagation delay in seconds, a matrix of APDs according to the distances between the devices - APD for devices i and j can be found in cell [i, j] in the array
-    rndRange = finTime/2; % the range of random first sending time, in microseconds, TODO: check how to choose it
+    APD = (linkLens*1000)/c; % air propagation delay in microseconds, a matrix of APDs according to the distances between the devices - APD for devices i and j can be found in cell [i, j] in the array
+    rndRange = 1000*10^-6; % the range of random first sending time, in microseconds, TODO: check how to choose it
     % nextSend = ones(1, numDevs);
     
     % empty queues for the packets the devices want to send
@@ -62,7 +62,6 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
             curTime = simEventsList{1}.time;
             i = findLastCurEvent(simEventsList, curTime); % finds the last event in the list that happens now
             curSimEvents = sortByHandlingOrder(simEventsList(1:i)); % sorts the events according to their handling order
-            ind = 1;
             while(size(curSimEvents, 2) > 0) % foreach simEvent in currentsimEvents, new events might be added to this list during the handling the original events
                 
                 simEvent = curSimEvents{1}; % the struct
@@ -94,7 +93,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % link, not each station!
                         genEvents = cell(1, numLinks);
                         for l=1:numLinks
-                            pktTime = randi(rndRange);
+                            pktTime = rand(1)*10^-5;
                             % create and insert simEvents to the data structure, 
                             % which we maintain sorted accordding to the 'time' field.
                             genEve = createEvent(simEventType.GEN_PACK, pktTime, l);

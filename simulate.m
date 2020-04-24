@@ -14,13 +14,20 @@ link4 = createlinkInfo(4, 3, 6, 0.1, 100, 900, 0);
 
 devsParams = {dev1P, dev2P, dev3P, dev4P};
 phyNetParams.numDevs = 4;
-phyNetParams.linksLens = [0, 10, 20, 22.36; 10, 0, 22.36, 20; 20, 22.36, 0, 10; 22.36, 20, 10, 0]; % in KMs
+phyNetParams.linksLens = [0, 1, 2, 2.236; 1, 0, 2.236, 2; 2, 2.236, 0, 1; 2.236, 2, 1, 0]; % in KMs
 logNetParams.linksInfo = {link1, link2, link3, link4};
-simulationParams.finishTime = 10;
+simulationParams.finishTime = 1; % in seconds
 simulationParams.debugMode = 1;
 
 [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simulationParams);
 
+disp(output);
+
+for p=1:4
+    disp(p);
+    disp(output.linksRes{p});
+end
+  
 
 
 

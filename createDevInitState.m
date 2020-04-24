@@ -19,6 +19,7 @@ function [devState] = createDevInitState(devParams, ackTO)
     devState.isColl = 0;
     
     devState.curCWND = 1;
+    devState.CWmin = 1;
     devState.CWmax = 1023;
     
     % Standard parameters    

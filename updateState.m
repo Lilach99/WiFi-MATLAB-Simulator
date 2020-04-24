@@ -319,6 +319,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         devState.sucSentBytes = devState.sucSentBytes + devState.curPkt.length;
                         devState.curPkt = emptyPacket();
                         devState.curRet = 0;
+                        devState.curCWND = devState.CWmin; % reset cwnd to the minimum
                         [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
                         if(isNew== 1)
                              newSimEvents{newEveInd} = newSimEvent; % insert the new event to the array
