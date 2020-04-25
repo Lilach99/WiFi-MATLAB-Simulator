@@ -23,7 +23,6 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     linksInfo = logNetParams.linksInfo;
     numLinks = size(linksInfo, 2);
 
-    
     %SIFS = cell2mat((cellfun(@(s)s.SIFS, devsParams,'uni',0)));
     %SlotTime = cell2mat((cellfun(@(s)s.ST, devsParams,'uni',0)));
     %DIFS = SIFS + 2*SlotTime; 
@@ -65,6 +64,10 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
             while(size(curSimEvents, 2) > 0) % foreach simEvent in currentsimEvents, new events might be added to this list during the handling the original events
                 
                 simEvent = curSimEvents{1}; % the struct
+                
+                if(simEvent.time < 0)
+                    fprintf("negative time!!!!!");
+                end
                 
                 if(debMode == 1)
                     disp(simEvent.type);

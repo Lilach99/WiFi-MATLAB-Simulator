@@ -448,14 +448,17 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                 
                 case devEventType.TIMER_EXPIRED
                     % sanity check
-                    if(devState.medCtr == 0 && devEve.timerType == timerType.BACKOFF)
-                        % medium is free and it's a backoff timer which expired
-                        devState.curState = devStateType.TRAN_PACK;
-                        devState.curBackoff = -1; % no active backoff
-                        devState.startBackoffTime = -1; % no active backoff
-                        opts = createOpts(devState.curPkt, timerType.NONE);
-                        newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
-                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.pktLenFunc(devState.curPkt.length, devState.curPkt.link.phyRate), devState.dev, opts); % TODO: insure it works: calculating the transmission time according to the device's provided function (the handling works OK, we just have to implement the function)
+                    if(devEve.timerType == timerType.BACKOFF)
+                        if(devState.medCtr == 0)
+                            % medium is free and it's a backoff timer which expired
+                            [devState, newSimEvents] = startTransmitting(devState, curTime);
+                        else
+                            % medium is busy! we have to wait for idle
+                            % again!
+                            devState.curState = devStateType.WAIT_FOR_IDLE;
+                            devState.curBackoff = -1; % no active backoff
+                            devState.startBackoffTime = -1; % no active backoff
+                        end
                     end
                     
                 case devEventType.REC_START
@@ -468,15 +471,31 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         % unfortunately, the medium became busy so update backoff
                         % and wait for idle
                         devState.curState = devStateType.WAIT_FOR_IDLE;
-                        devState.curBackoff = devState.curBackoff - (curTime - devState.startBackoffTime); % the remaining time to count
+                        
+                        devState.curBackoff = devState.curBackoff - curTime + devState.startBackoffTime; % the remaining time to count
+%                         if(devState.curBackoff == 0)
+%                             % backoff counter just zerod, so we have to
+%                             % start transmitting even it can cause a
+%                             % collision! TODO: insure...
+%                             [devState, newSimEvents] = startTransmitting(devState, curTime);
+%                         end
                         devState.startBackoffTime = -1;
                     else
                         % this is a packet for us! we have to receive it
                         % and continue the transmitting attempt later
-                        devState.curBackoff = devState.curBackoff - (curTime - devState.startBackoffTime); % the remaining time to count
+                       
+                        devState.curBackoff = devState.curBackoff - curTime + devState.startBackoffTime; % the remaining time to count
                         devState.startBackoffTime = -1;
+%                         if(devState.curBackoff == 0)
+%                             % backoff counter just zerod, so we have to
+%                             % start transmitting even it can cause a
+%                             % collision! TODO: insure...
+%                             [devState, newSimEvents] = startTransmitting(devState, curTime);
+%                             devState.isColl =  devState.isColl + 1; % the received packet is collided with the current transmitted packet
+%                         else
                         devState = updateReceptionState(devState, devEve.pkt);  
                         % TODO: insure the handling is OK  
+%                         end
                     end
                                             
                 otherwise

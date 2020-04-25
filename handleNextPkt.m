@@ -30,7 +30,7 @@ function [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime)
     else
         % there is another packet to send! immediately start
         % the sensing process
-        devState.curPkt = getPktFromQueue(devState.queue); % the packet which we have to send
+        [devState.curPkt, devState.queue] = getPktFromQueue(devState.queue); % the packet which we have to send
         % there is a packet to send
         if(devState.medCtr == 0)
             % medium is free from our point of view

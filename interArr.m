@@ -3,6 +3,6 @@ function [interArrTime] = interArr(pkt, linkInfo)
     %second) and the current packet lenght
     %   the formula is: IAT = 1/(DATA_RATE/PKT_LENGHT) (IAT is in seconds)
     
-    interArrTime = 1/(linkInfo.dataRate/(pkt.length*8)); % in microseconds; note that we need units casting in the pkt.length - from bytes to bits!!
+    interArrTime = 1/(linkInfo.dataRate/(pkt.length*8)); % in seconds; note that we need units casting in the pkt.length - from bytes to bits!!
     
 end
