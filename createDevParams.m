@@ -1,4 +1,4 @@
-function [devP] = createDevParams(dev, SIFS, ST, numRet, ACKLenFunc, ackTO, pktLenFunc)
+function [devP] = createDevParams(dev, SIFS, ST, numRet, ACKLenFunc, pktLenFunc)
     %craetes an instance of devParams struct, according to the input
     %parameters
     devP.dev = dev;
@@ -6,7 +6,6 @@ function [devP] = createDevParams(dev, SIFS, ST, numRet, ACKLenFunc, ackTO, pktL
     devP.ST = ST * (10^-6);
     devP.numRet = numRet;
     devP.ackLenFunc = ACKLenFunc;
-    devP.ackTO = ackTO;
     devP.pktLenFunc = pktLenFunc;
 
 end

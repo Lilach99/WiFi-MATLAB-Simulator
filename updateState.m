@@ -13,7 +13,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
     newSimEvents = {};
     eventType = devEve.type;
     handled = 0; % a flag for handling the event, to avoid 'illegal event' error in some cases
-    
+    illegalFlag = 0;
     % REC_START and REC_END events can happen in every state, so we do the
     % basic handling of them here, only if they have to be treated as
     % "MED_BUSY and MED_FREE" - inc. or dec. medCtr.
@@ -92,7 +92,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                 
                 otherwise
                     if (handled == 0)
-                        fprintf('Illegal event') 
+                        illegalFlag = 1;
                     end
             end
             
@@ -122,7 +122,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
                         newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.pktLenFunc(devState.curPkt.length, devState.curPkt.link.phyRate), devState.dev, opts); % TODO: now it does not work, we have to ninsure it works: calculating the transmission time according to the device's provided function, 10 is instead of the PHY rate...
                     elseif(handled == 0)
-                        fprintf('Illegal event') 
+                        illegalFlag = 1;
                     end
                     
                 otherwise
@@ -154,9 +154,20 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                     end
                     % if it's not for this device - do nothing
                     
+                case devEventType.REC_END
+                    % might happen, if we started to "receive" a collided 
+                    % packet during transmitting
+                    if(isPacketMine(devEve.pkt, devState.dev) == 1) % check if the packet is destined to this device
+                        if(devState.isColl == 1)
+                            % treat as MED_FREE
+                            devState.medCtr = devState.medCtr - 1;
+                            devState.isColl = devState.isColl - 1;
+                        end
+                    end
+                    
                 otherwise
                     if (handled == 0)
-                        fprintf('Illegal event') 
+                        illegalFlag = 1;
                     end
             end
             
@@ -197,12 +208,12 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         % ACK Timeout!!!
                         [devState, newSimEvents] = retransmitTry(devState, curTime);
                     elseif(handled == 0)
-                        fprintf('Illegal event') 
+                        illegalFlag = 1;
                     end
                     
                 otherwise
                     if (handled == 0)
-                        fprintf('Illegal event') 
+                        illegalFlag = 1;
                     end
             end
                     
@@ -271,7 +282,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
     
                 otherwise
                     if (handled == 0)
-                        fprintf('Illegal event') 
+                        illegalFlag = 1;
                     end
             end
             
@@ -402,7 +413,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                      
                 otherwise
                     if (handled == 0)
-                        fprintf('Illegal event') 
+                        illegalFlag = 1;
                     end
             end   
             
@@ -433,12 +444,12 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         opts = createOpts(emptyPacket(), timerType.BACKOFF);
                         newSimEvents{1} = createEvent(simEventType.SET_TIMER, curTime + devState.curBackoff, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
                     elseif(handled ==0)
-                        fprintf('Illegal event') 
+                        illegalFlag = 1;
                     end
                     
                 otherwise
                     if (handled == 0)
-                        fprintf('Illegal event') 
+                        illegalFlag = 1;
                     end
             end
             
@@ -542,7 +553,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                     
                 otherwise
                     if (handled == 0)
-                        fprintf('Illegal event') 
+                        illegalFlag = 1;
                     end
             end
             
@@ -550,4 +561,12 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
             fprintf('Invalid device state!') % we should not reach this line...
             
     end
+    
+    % for debugging
+    if (illegalFlag == 1)
+        disp(devState.dev);
+        disp(devState.curState);
+        disp(devEve);
+    end
+        
 end

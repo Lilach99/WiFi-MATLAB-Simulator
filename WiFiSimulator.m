@@ -29,8 +29,8 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
 
     c = 299704644.54; % light speed in air in m/sec, CONSTANT
     curTime = 0; % time in simulation, in microseconds
-    APD = (linkLens*1000)/c; % air propagation delay in microseconds, a matrix of APDs according to the distances between the devices - APD for devices i and j can be found in cell [i, j] in the array
-    rndRange = 1000*10^-6; % the range of random first sending time, in microseconds, TODO: check how to choose it
+    APD = (linkLens*1000)/c; % air propagation delay in seconds, a matrix of APDs according to the distances between the devices - APD for devices i and j can be found in cell [i, j] in the array
+    rndRange = 10^-3; % the range of random first sending time, in seconds, TODO: check how to choose it
     % nextSend = ones(1, numDevs);
     
     % empty queues for the packets the devices want to send
@@ -39,7 +39,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     % create the devices' states cell array
     for i=1:numDevs
         % ACK Timeout = 2 * Air Propagation Time (max) + SIFS + Time to transmit 14 byte ACK frame 
-        ackTO = 2*max(APD(i, :)) + devsParams{i}.SIFS + devsParams{i}.ackLenFunc(6); % according to the minimum PHY rate
+        ackTO = 2*max(APD(i, :)) + devsParams{i}.SIFS + devsParams{i}.ackLenFunc(6*10^6); % according to the minimum PHY rate
         devStates{i} = createDevInitState(devsParams{i}, ackTO);
     end
 
@@ -96,7 +96,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % link, not each station!
                         genEvents = cell(1, numLinks);
                         for l=1:numLinks
-                            pktTime = rand(1)*10^-5;
+                            pktTime = randi(10)*rndRange;
                             % create and insert simEvents to the data structure, 
                             % which we maintain sorted accordding to the 'time' field.
                             genEve = createEvent(simEventType.GEN_PACK, pktTime, l);
