@@ -19,8 +19,6 @@ logNetParams.linksInfo = {link1, link2, link3, link4};
 simulationParams.finishTime = 5; % in seconds
 simulationParams.debugMode = 1;
 
-
-
 % %  for 2 devices, 1 pTp link:
 % 
 % dev1P = createDevParams(1, 16, 9, 14, @ackLengthFunc, 7000000, @pktLengthFunc); % SIFS and SlotTime and ackTO are in microseconds
