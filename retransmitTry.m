@@ -21,7 +21,10 @@ function [devState, newSimEvents] = retransmitTry(devState, curTime)
         % no more retries!
         devState.lostBytes = devState.lostBytes + devState.curPkt.length; % save info about the lost packet
         devState.curPkt = emptyPacket(); % then delete it, we do not want to send it again...
-        [devState, newSimEvents, isNew] = handleNextPkt(devState, curTime); % maybe we have more packets to send, so we handle it
+        [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime); % maybe we have more packets to send, so we handle it
+        if(isNew == 1)
+             newSimEvents{1} = newSimEvent; % insert the new event to the array
+        end
         devState.curRet = 0;
                 
     end

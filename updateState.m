@@ -229,15 +229,26 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                 case devEventType.REC_END
                     if(checkPackValidity(devState, devEve.pkt))
                         % valid packet
-                        devState.recBytes = devState.recBytes + devEve.pkt.length; % count the receives packet bytes
-                        devState.curState = devStateType.SEND_ACK;
-                        % devState.curPkt = createACK(devEve.pkt, devState, curTime);
-                        opts = createOpts(createACK(devEve.pkt, devState, curTime), timerType.NONE);
-                        newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime + devState.SIFS, devState.dev, opts); % start to transmit the ACK after SIFS time; TODO: check if it's OK to change state to SEND_ACK although we actually start to send after SIFS time - in a sense of collsions handing - it should not happen in pTp links...
-                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.SIFS + devState.ackLenFunc(devEve.pkt.link.phyRate), devState.dev, opts); % TODO: check if we have to take min(pkt.link.rate, opposite link rate)... and if so - how??
-                        devState.curRecPkt = emptyPacket(); % collision counter shows 0
-                        % we do not have to use handleNextPkt because first
-                        % we have to send ACK on the valid received one
+                        % but, it might be dropped off (statistically)
+                        dropRand = rand(1); % randomize a number between 0 and 1, to simulate the "packets dropoff rate" in the link
+                        if(dropRand > devEve.pkt.link.pktDropoffRate)
+                            % do not drop the packet, receive it properly
+                            devState.recBytes = devState.recBytes + devEve.pkt.length; % count the receives packet bytes
+                            devState.curState = devStateType.SEND_ACK;
+                            % devState.curPkt = createACK(devEve.pkt, devState, curTime);
+                            opts = createOpts(createACK(devEve.pkt, devState, curTime), timerType.NONE);
+                            newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime + devState.SIFS, devState.dev, opts); % start to transmit the ACK after SIFS time; TODO: check if it's OK to change state to SEND_ACK although we actually start to send after SIFS time - in a sense of collsions handing - it should not happen in pTp links...
+                            newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.SIFS + devState.ackLenFunc(devEve.pkt.link.phyRate), devState.dev, opts); % TODO: check if we have to take min(pkt.link.rate, opposite link rate)... and if so - how??
+                            devState.curRecPkt = emptyPacket(); % collision counter shows 0
+                            % we do not have to use handleNextPkt because first
+                            % we have to send ACK on the valid received one
+                        else
+                            % drop the packet, continue without sending ACK
+                            [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                            if(isNew == 1)
+                                 newSimEvents{1} = newSimEvent; % insert the new event to the array
+                            end
+                        end
                         
                     elseif(devState.isColl > 0)
                         % it is a collided packet so we cannot receive it
