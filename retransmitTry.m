@@ -19,8 +19,9 @@ function [devState, newSimEvents] = retransmitTry(devState, curTime)
         end
     else
         % no more retries!
-        devState.curState = devStateType.IDLE;
         devState.lostBytes = devState.lostBytes + devState.curPkt.length; % save info about the lost packet
+        devState.curPkt = emptyPacket(); % then delete it, we do not want to send it again...
+        [devState, newSimEvents, isNew] = handleNextPkt(devState, curTime); % maybe we have more packets to send, so we handle it
         devState.curRet = 0;
                 
     end
