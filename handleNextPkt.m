@@ -12,19 +12,19 @@ function [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime)
         % receive a packt so we have to continue the procedure)
         if(devState.medCtr == 0)
             % medium is free from our point of view
-            devState.curState = devStateType.WAIT_DIFS; % TODO: insure it has to be WAIT_DIFS state... to continue backoff or start a new one
+            devState = changeDevState(devState, devStateType.WAIT_DIFS); % TODO: insure it has to be WAIT_DIFS state... to continue backoff or start a new one
             % creare a 'SET_TIMER' event after DIFS time
             opts = createOpts(devState.curPkt, timerType.DIFS);
             newSimEvent = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);
             isNew = 1;
         else
             % medium is busy!
-            devState.curState = devStateType.WAIT_FOR_IDLE;
+             devState = changeDevState(devState, devStateType.WAIT_FOR_IDLE);        
         end
         
     elseif(devState.queue.tail == 1)
         % we are not trying to send a packet now and our queue is empty
-        devState.curState = devStateType.IDLE;
+         devState = changeDevState(devState, devStateType.IDLE);
         devState.curPkt = emptyPacket();
         
     else
@@ -34,14 +34,14 @@ function [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime)
         % there is a packet to send
         if(devState.medCtr == 0)
             % medium is free from our point of view
-            devState.curState = devStateType.START_CSMA; % TODO: verify it has to be this state or START_CSMA state... to start from the begining
+             devState = changeDevState(devState, devStateType.WAIT_DIFS); % TODO: verify it has to be WAIT_DIFS state... because we must excecute a new backoff process
             % creare a 'SET_TIMER' event after DIFS time
             opts = createOpts(devState.curPkt, timerType.DIFS);
             newSimEvent = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);
             isNew = 1;
         else
             % medium is busy!
-            devState.curState = devStateType.WAIT_FOR_IDLE;
+            devState = changeDevState(devState, devStateType.WAIT_FOR_IDLE);        
         end
     end
     devState.curRecPkt = emptyPacket();

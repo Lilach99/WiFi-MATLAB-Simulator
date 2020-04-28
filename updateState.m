@@ -57,13 +57,13 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                     % there is a packet to send
                     if(devState.medCtr == 0)
                         % medium is free from our point of view
-                        devState.curState = devStateType.START_CSMA;
+                        devState = changeDevState(devState, devStateType.START_CSMA);
                         % creare a 'SET_TIMER' event after DIFS time
                         opts = createOpts(devState.curPkt, timerType.DIFS);
                         newSimEvents{1} = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);
                     else
                         % medium is busy!
-                        devState.curState = devStateType.WAIT_FOR_IDLE;
+                        devState = changeDevState(devState, devStateType.WAIT_FOR_IDLE);
                     end
                     
                 case devEventType.REC_START
@@ -106,7 +106,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         opts = createOpts(emptyPacket(), timerType.DIFS);
                         newSimEvents{1} = createEvent(simEventType.CLEAR_TIMER, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
                     if(isPacketMine(devEve.pkt, devState.dev) == 0) % treat like "MED_BUSY"
-                        devState.curState = devStateType.WAIT_FOR_IDLE;
+                        devState = changeDevState(devState, devStateType.WAIT_FOR_IDLE);
                     else
                         % this is a packet for us! we have to receive it
                         % and continue the transmitting attempt later
@@ -117,7 +117,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                 case devEventType.TIMER_EXPIRED
                     % just for sanity check:
                     if(devEve.timerType == timerType.DIFS)
-                        devState.curState = devStateType.TRAN_PACK;
+                        devState = changeDevState(devState, devStateType.TRAN_PACK);
                         opts = createOpts(devState.curPkt, timerType.NONE);
                         newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
                         newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.pktLenFunc(devState.curPkt.length, devState.curPkt.link.phyRate), devState.dev, opts); % TODO: now it does not work, we have to ninsure it works: calculating the transmission time according to the device's provided function, 10 is instead of the PHY rate...
@@ -136,7 +136,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
             switch eventType
                 
                 case devEventType.TRAN_END
-                    devState.curState = devStateType.WAIT_FOR_ACK; % update the correspnding control bit
+                    devState = changeDevState(devState, devStateType.WAIT_FOR_ACK); % update the correspnding control bit
                     devState.isWaitingForACK = 1; % the device is waiting for ack from now on
                     % create a 'SET_TIMER' event for the ACK TO
                     opts = createOpts(devState.curPkt, timerType.ACK);
@@ -234,7 +234,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         if(dropRand > devEve.pkt.link.pktDropoffRate)
                             % do not drop the packet, receive it properly
                             devState.recBytes = devState.recBytes + devEve.pkt.length; % count the receives packet bytes
-                            devState.curState = devStateType.SEND_ACK;
+                            devState = changeDevState(devState, devStateType.SEND_ACK);
                             % devState.curPkt = createACK(devEve.pkt, devState, curTime);
                             opts = createOpts(createACK(devEve.pkt, devState, curTime), timerType.NONE);
                             newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime + devState.SIFS, devState.dev, opts); % start to transmit the ACK after SIFS time; TODO: check if it's OK to change state to SEND_ACK although we actually start to send after SIFS time - in a sense of collsions handing - it should not happen in pTp links...
@@ -262,7 +262,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         % take care of ACK waiting
                         if(devState.isWaitingForACK == 1)
                             if(devState.isACKToExp == 0)
-                                devState.curState = devStateType.WAIT_FOR_ACK;
+                                devState = changeDevState(devState, devStateType.WAIT_FOR_ACK);
                             else
                                 % ACK TO had already expired!
                                 % start a new sending attempt, if it's possible
@@ -280,7 +280,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         % take care of ACK waiting
                         if(devState.isWaitingForACK == 1)
                             if(devState.isACKToExp == 0)
-                                devState.curState = devStateType.WAIT_FOR_ACK;
+                                devState = changeDevState(devState, devStateType.WAIT_FOR_ACK);
                             else
                                 % ACK TO had already expired!
                                 % start a new sending attempt, if it's possible
@@ -354,7 +354,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         devState.isColl = devState.isColl - 1;
                         if(devState.isWaitingForACK == 1)
                             if(devState.isACKToExp == 0)
-                                devState.curState = devStateType.WAIT_FOR_ACK;
+                                devState = changeDevState(devState, devStateType.WAIT_FOR_ACK);
                             else
                                 % ACK TO had already expired!
                                 % start a new sending attempt, if it's possible
@@ -395,7 +395,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                     if(isPacketMine(devEve.pkt, devState.dev) == 0) % check if the packet is not destined to this device, and if so, treat as "MRD_FREE"
                         if(devState.medCtr == 0)
                             % the medium is sensed as free
-                            devState.curState = devStateType.WAIT_DIFS;
+                            devState = changeDevState(devState, devStateType.WAIT_DIFS);
                             % creare a 'SET_TIMER' event after DIFS time
                             opts = createOpts(emptyPacket(), timerType.DIFS);
                             newSimEvents{1} = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);
@@ -438,7 +438,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                       opts = createOpts(emptyPacket(), timerType.DIFS);
                       newSimEvents{1} = createEvent(simEventType.CLEAR_TIMER, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
                     if(isPacketMine(devEve.pkt, devState.dev) == 0) % treat like "MED_BUSY"
-                        devState.curState = devStateType.WAIT_FOR_IDLE;
+                        devState = changeDevState(devState, devStateType.WAIT_FOR_IDLE);
                     else
                         % this is a packet for us! we have to receive it
                         % and continue the transmitting attempt later
@@ -449,7 +449,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                 case devEventType.TIMER_EXPIRED
                     % just for sanity check:
                     if(devEve.timerType == timerType.DIFS)
-                        devState.curState = devStateType.BACKING_OFF;
+                        devState = changeDevState(devState, devStateType.BACKING_OFF);
                         devState.curBackoff = randomizeBackoff(devState);
                         devState.startBackoffTime = curTime;
                         opts = createOpts(emptyPacket(), timerType.BACKOFF);
@@ -477,7 +477,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         else
                             % medium is busy! we have to wait for idle
                             % again!
-                            devState.curState = devStateType.WAIT_FOR_IDLE;
+                            devState = changeDevState(devState, devStateType.WAIT_FOR_IDLE);
                             devState.curBackoff = -1; % no active backoff
                             devState.startBackoffTime = -1; % no active backoff
                         end
@@ -492,7 +492,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                     if(isPacketMine(devEve.pkt, devState.dev) == 0) % treat like "MED_BUSY"
                         % unfortunately, the medium became busy so update backoff
                         % and wait for idle
-                        devState.curState = devStateType.WAIT_FOR_IDLE;
+                        devState = changeDevState(devState, devStateType.WAIT_FOR_IDLE);
                         
                         devState.curBackoff = devState.curBackoff - curTime + devState.startBackoffTime; % the remaining time to count
 %                         if(devState.curBackoff == 0)
@@ -535,7 +535,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                     % take care of ACK waiting, if exists
                         if(devState.isWaitingForACK == 1)
                             if(devState.isACKToExp == 0)
-                                devState.curState = devStateType.WAIT_FOR_ACK;
+                                devState = changeDevState(devState, devStateType.WAIT_FOR_ACK);
                             else
                                 % ACK TO had already expired!
                                 % start a new sending attempt, if it's possible
