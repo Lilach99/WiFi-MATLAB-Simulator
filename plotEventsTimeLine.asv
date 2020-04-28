@@ -59,14 +59,14 @@ function [] = plotEventsTimeLine(station, type, desEvents, simTime)
             ourRecData = ones(size(ourRecTimes));
             
             % REC events of packets not destined to the device 'station'
-            otherPktsEvesStartTimes = round(10^6*(eventsTimes(eventPktsDsts ~= station & eventData == 2))); % only packets which are NOT for us, REC_START enum = 2           
+            othersPktsEvesStartTimes = round(10^6*(eventsTimes(eventPktsDsts ~= station & eventData == 2))); % only packets which are NOT for us, REC_START enum = 2           
             otherPktsEvesEndTimes = round(10^6*(eventsTimes(eventPktsDsts ~= station & eventData == 3))); % only packets which are NOT for us, REC_END enum = 3
             otherTimeLine = zeros(simTime*10^6, 1);
             otherTimeLine(otherPktsEvesStartTimes) = 1; % put 1 in every REC_START cell
             otherTimeLine(otherPktsEvesEndTimes) = -1; % put -1 in every REC_END cell
             otherTimeLine = cumsum(otherTimeLine);
-            ourMedTimes = times(otherTimeLine == 1);
-            ourMedData = ones(size(ourMedTimes));
+            otherRecTimes = times(otherTimeLine == 1);
+            otherRecData = ones(size(otherRecTimes));
 
    
             tiledlayout(3,1) % we will plot the receiving intervals of our packets, as well as other device's packets
