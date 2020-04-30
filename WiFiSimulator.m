@@ -116,7 +116,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         end
                         
                     case simEventType.GEN_PACK
-                        % happens per link, triggers a 'PACKET_EXISTS'
+                        % happens per link, triggers a 'NEW_PACKET'
                         % event for the src device of the link (which is
                         % directional)
                         % so, in the 'station' field of the GEN_PACK event,
@@ -125,7 +125,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         pktLength = randi([linksInfo{curStation}.minPS, linksInfo{curStation}.maxPS]); % randomize the packet size
                         pkt = generatePacket(curStation, linksInfo{curStation}, pktLength , curTime, linksInfo{curStation}.src, linksInfo{curStation}.dst);
                         % update the device that it has a packet to send
-                        genDevEve = createEvent(devEventType.PACKET_EXISTS, curTime, linksInfo{curStation}.src, createOpts(pkt, timerType.NONE)); 
+                        genDevEve = createEvent(devEventType.NEW_PACKET, curTime, linksInfo{curStation}.src, createOpts(pkt, timerType.NONE)); 
                         [devStates{linksInfo{curStation}.src}, newSimEvents] = updateState(genDevEve, devStates{linksInfo{curStation}.src}, curTime);
                         simEventsList = saveNewEvents(newSimEvents, simEventsList);
                         curSimEvents = updateEventsList(newSimEvents, curTime, curSimEvents); % insert new events which have to be handled right now to the current events list

@@ -1,15 +1,19 @@
 function [devState, newSimEvents] = retransmitTry(devState, curTime)
     %handled a retransmit try in case of an ACK timeout
     newSimEvents=[];
-    devState.curCWND = min(devState.curCWND*2, devState.CWmax);
+    if(devState.curRet > 0)
+        % we have to increase CW only after unsuccessfun REtransmission!
+        devState.curCWND = min(devState.curCWND*2 + 1, devState.CWmax);
+    end
     devState.isWaitingForACK = 0; % the device is not waiting anymore
     devState.isACKToExp = 0;
     if(devState.curRet < devState.numRet)
         % we still have some retries
         devState.curRet  = devState.curRet + 1;
         if(devState.medCtr == 0)
-            % medium is free from our point of view
-            devState = changeDevState(devState, devStateType.START_CSMA);
+            % medium is free from our point of view, but we must excecute a
+            % new backoff procedure because it was an unsuccessful transmission
+            devState = changeDevState(devState, devStateType.WAIT_DIFS);
             % create a 'SET_TIMER' event after DIFS time
             opts = createOpts(devState.curPkt, timerType.DIFS);
             newSimEvents{1} = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);
@@ -26,7 +30,8 @@ function [devState, newSimEvents] = retransmitTry(devState, curTime)
              newSimEvents{1} = newSimEvent; % insert the new event to the array
         end
         devState.curRet = 0;
-                
+        devState.curCWND = devState.CWmin; % reset cwnd to the minimum
+              
     end
     
 end

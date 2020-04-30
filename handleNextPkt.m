@@ -34,7 +34,7 @@ function [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime)
         % there is a packet to send
         if(devState.medCtr == 0)
             % medium is free from our point of view
-             devState = changeDevState(devState, devStateType.WAIT_DIFS); % TODO: verify it has to be WAIT_DIFS state... because we must excecute a new backoff process
+             devState = changeDevState(devState, devStateType.WAIT_DIFS); % it has to be WAIT_DIFS state... because we must excecute a new backoff process
             % creare a 'SET_TIMER' event after DIFS time
             opts = createOpts(devState.curPkt, timerType.DIFS);
             newSimEvent = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);

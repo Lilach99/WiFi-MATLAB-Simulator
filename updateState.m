@@ -36,9 +36,9 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
         handled = 1;
     end
    
-    % we also have to handle PACKET_EXISTS event here, insert to queue if
+    % we also have to handle NEW_PACKET event here, insert to queue if
     % we are not IDLE
-    if(eventType == devEventType.PACKET_EXISTS)
+    if(eventType == devEventType.NEW_PACKET)
             % we have to push the packet to the device's queue
             devState.queue = insertPacketToQueue(devState.queue, devEve.pkt);
             handled = 1; % only if it's 'IDLE' state we will actually start sensing later
@@ -52,7 +52,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
             
             switch eventType
                 
-                case devEventType.PACKET_EXISTS
+                case devEventType.NEW_PACKET
                     [devState.curPkt, devState.queue] = getPktFromQueue(devState.queue); % the packet which we have to send, it is removed from the queue
                     % there is a packet to send
                     if(devState.medCtr == 0)
@@ -255,10 +255,6 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         % properly, but we have to decrease the 'isColl'
                         % counter of the device for future receptions
                         devState.isColl = devState.isColl - 1;
-                        [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
-                        if(isNew == 1)
-                             newSimEvents{1} = newSimEvent; % insert the new event to the array
-                        end
                         % take care of ACK waiting
                         if(devState.isWaitingForACK == 1)
                             if(devState.isACKToExp == 0)
@@ -268,6 +264,13 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                                 % start a new sending attempt, if it's possible
                                 % ACK Timeout!!!
                                 [devState, newSimEvents] = retransmitTry(devState, curTime);
+                            end
+                        else
+                            % we are not waiting for ACK so discard the 
+                            % collided packet and handle the next one
+                            [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                            if(isNew == 1)
+                                newSimEvents{1} = newSimEvent; % insert the new event to the array
                             end
                         end
                         
@@ -300,19 +303,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
         case devStateType.REC_ACK
             
             switch eventType
-                
-%                 case devEventType.TIMER_EXPIRED
-%                     % the ACK timeout expired during an ACK reception, so
-%                     % we have to wait until the end of reception, and than
-%                     % if the ACK is valid - continue and otherwise -
-%                     % retransmit (if we have more retries)
-%                     if(devEve.timerType == timerType.ACK)
-%                         % sanity check
-%                         devState.isACKToExp = 1; 
-%                     else
-%                         fprintf('illegal timer expired event!');
-%                     end
-                
+              
                 case devEventType.REC_START
                     % anyway it's a collision!! no matter if the packet is
                     % for us or not!
@@ -494,7 +485,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         % and wait for idle
                         devState = changeDevState(devState, devStateType.WAIT_FOR_IDLE);
                         
-                        devState.curBackoff = devState.curBackoff - curTime + devState.startBackoffTime; % the remaining time to count
+                        devState.curBackoff = decBackoff(devState, curTime); % the remaining time to count, a whole (integer) number of STs
 %                         if(devState.curBackoff == 0)
 %                             % backoff counter just zerod, so we have to
 %                             % start transmitting even it can cause a
@@ -543,7 +534,10 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                                 [devState, newSimEvents] = retransmitTry(devState, curTime);
                             end
                         else
-                            % handle the next packet to send, if exists
+                            % handle the next packet to send, if exists -
+                            % TODO: fix it, because we have to go to
+                            % START_CSMA rather than WAIT_DIFS - it's after
+                            % reception and sending ACK transmission!
                             [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
                             if(isNew == 1)
                                  newSimEvents{1} = newSimEvent; % insert the new event to the array

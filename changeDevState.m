@@ -6,7 +6,7 @@ function [devState] = changeDevState(devState, newState)
 % binary matrix which, there is 1 in cell [i, j] iff the transition i->j is
 % legal according to the state machine (of the standard), i and j are 
 % enumaraions for the states
-legalTransitions = [1,1,0,0,1,1,0,0,1,0; 0,1,1,0,1,1,0,0,1,0; 0,0,1,1,0,0,0,0,0,0; 1,1,0,1,1,1,1,0,1,0; 1,0,0,1,1,1,1,0,0,0; 0,0,0,0,0,1,1,0,0,0; 0,0,0,0,1,1,1,1,1,0; 0,0,1,0,1,1,0,1,1,0; 1,1,0,1,0,1,1,0,1,1; 1,1,0,1,0,1,1,0,0,1];
+legalTransitions = [1,1,0,0,1,1,0,0,1,0; 0,1,1,0,1,1,0,0,1,0; 0,0,1,1,0,0,0,0,0,0; 1,0,0,1,1,1,1,0,1,0; 1,0,0,1,1,1,1,0,0,0; 0,0,0,0,0,1,1,0,0,0; 0,0,0,0,1,1,1,1,1,0; 0,0,1,0,1,1,0,1,1,0; 1,1,0,1,0,1,1,0,1,1; 1,1,0,1,0,1,1,0,0,1];
 
 if(legalTransitions(int32(devState.curState), int32(newState)) == 1)
     % it's OK to change, legal transition!

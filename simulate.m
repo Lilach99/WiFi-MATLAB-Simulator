@@ -45,6 +45,11 @@ for p=1:4
     disp(output.linksRes{p});
 end
   
+% for plotting timelines and saving them to files in the folder
+% 'ResultsGraphs'
+for s=1:4
+    plotAllTimelinesForDev(s, output.eventsDS, simulationParams.finishTime);
+end
 
 
 
