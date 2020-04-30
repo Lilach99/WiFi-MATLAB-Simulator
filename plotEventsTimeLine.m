@@ -7,7 +7,7 @@ function [] = plotEventsTimeLine(station, type, desEvents, simTime)
     eventTypesEnums = cellfun(@(s)s.type, desEvents,'uni',0);
     eventData = cell2mat(cellfun(@(s)double(s), eventTypesEnums,'uni',0)); 
     timeLine = zeros(simTime*10^6, 1);
-    times = linspace(0, simTime, simTime*10^6);
+    times = linspace(0, simTime*10^6, simTime*10^6);
 
     switch type
         
@@ -31,13 +31,17 @@ function [] = plotEventsTimeLine(station, type, desEvents, simTime)
             title(['Device number ', num2str(station) ' - transmitting intervals']);
 %             hold on
 %             scatter(noTranTimes, noTranData, '.', 'w');
-            hold off
-
+            
             
         case eventType.REC
             % take the REC_START and REC_END times, in microseconds
             % resolution (we apply rounding to avoid fractions)
             startEvesTimes = round(10^6*(eventsTimes(eventData == 2)), 0); % 
+            % the last REC_START event might happen after simTime but still
+            % be recorded, so if discard it if there's a need:
+            if(startEvesTimes(size(startEvesTimes, 2)) > simTime*10^6)
+                startEvesTimes = startEvesTimes(1:(size(startEvesTimes, 2)-1));
+            end
             endEvesTimes = round(10^6*(eventsTimes(eventData == 3)), 0); % 
             timeLine(startEvesTimes) = 1; % put 1 in every TRAN_START cell
             timeLine(endEvesTimes) = -1; % put 1 in every TRAN_START cell
@@ -51,6 +55,11 @@ function [] = plotEventsTimeLine(station, type, desEvents, simTime)
             % REC events of packets destined to the device 'station'
             ourPktsEvesStartTimes = round(10^6*(eventsTimes(eventPktsDsts == station & eventData == 2))); % only packets for us, REC_START enum = 2           
             ourPktsEvesEndTimes = round(10^6*(eventsTimes(eventPktsDsts == station & eventData == 3))); % only packets for us, REC_END enum = 3
+            % the last REC_START event might happen after simTime but still
+            % be recorded, so if discard it if there's a need:
+            if(ourPktsEvesStartTimes(size(ourPktsEvesStartTimes, 2)) > simTime*10^6)
+                ourPktsEvesStartTimes = ourPktsEvesStartTimes(1:(size(ourPktsEvesStartTimes, 2)-1));
+            end
             ourTimeLine = zeros(simTime*10^6, 1);
             ourTimeLine(ourPktsEvesStartTimes) = 1; % put 1 in every REC_START cell
             ourTimeLine(ourPktsEvesEndTimes) = -1; % put -1 in every REC_END cell
@@ -61,6 +70,11 @@ function [] = plotEventsTimeLine(station, type, desEvents, simTime)
             % REC events of packets not destined to the device 'station'
             otherPktsEvesStartTimes = round(10^6*(eventsTimes(eventPktsDsts ~= station & eventData == 2))); % only packets which are NOT for us, REC_START enum = 2           
             otherPktsEvesEndTimes = round(10^6*(eventsTimes(eventPktsDsts ~= station & eventData == 3))); % only packets which are NOT for us, REC_END enum = 3
+            % the last REC_START event might happen after simTime but still
+            % be recorded, so if discard it if there's a need:
+            if(otherPktsEvesStartTimes(size(otherPktsEvesStartTimes, 2)) > simTime*10^6)
+                otherPktsEvesStartTimes = otherPktsEvesStartTimes(1:(size(otherPktsEvesStartTimes, 2)-1));
+            end
             otherTimeLine = zeros(simTime*10^6, 1);
             otherTimeLine(otherPktsEvesStartTimes) = 1; % put 1 in every REC_START cell
             otherTimeLine(otherPktsEvesEndTimes) = -1; % put -1 in every REC_END cell
@@ -76,7 +90,6 @@ function [] = plotEventsTimeLine(station, type, desEvents, simTime)
             title(['Device number ', num2str(station) ' - receiving intervals - total']);
 %             hold on
 %             scatter(ourPktsEvesEndTimes,ourPktsEvesEndData, '>', 'm');
-            hold off
                
             % Middle plot - only packets for us receiving intervals
             nexttile
@@ -84,16 +97,12 @@ function [] = plotEventsTimeLine(station, type, desEvents, simTime)
             title(['Device number ', num2str(station) ' - receiving intervals of packets destined to it']);
 %             hold on
 %             scatter(endEvesTimes,endEvesData, '>', 'm');
-            hold off
 
             % Bottom plot
             nexttile
             scatter(ourMedTimes, ourMedData,  '.', 'r');
             title(['Device number ', num2str(station) ' - medium busy intervals']);
 
-
-            
-            
         otherwise
             fprinf('illegal event type to plot!');
     end

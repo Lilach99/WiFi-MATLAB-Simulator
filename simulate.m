@@ -47,9 +47,10 @@ end
   
 % for plotting timelines and saving them to files in the folder
 % 'ResultsGraphs'
-for s=1:4
-    plotAllTimelinesForDev(s, output.eventsDS, simulationParams.finishTime);
+if(simulationParams.debugMode)
+    for s=1:4
+        plotAllTimelinesForDev(s, output.eventsDS, simulationParams.finishTime);
+    end
 end
-
 
 

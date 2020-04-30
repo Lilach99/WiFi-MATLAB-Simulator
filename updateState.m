@@ -244,7 +244,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                             % we have to send ACK on the valid received one
                         else
                             % drop the packet, continue without sending ACK
-                            [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                            [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, 0); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
                             if(isNew == 1)
                                  newSimEvents{1} = newSimEvent; % insert the new event to the array
                             end
@@ -268,7 +268,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         else
                             % we are not waiting for ACK so discard the 
                             % collided packet and handle the next one
-                            [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                            [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, 0); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
                             if(isNew == 1)
                                 newSimEvents{1} = newSimEvent; % insert the new event to the array
                             end
@@ -276,7 +276,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         
                    else
                         % not valid packet - throw it
-                        [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                        [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, 0); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
                         if(isNew == 1)
                              newSimEvents{1} = newSimEvent; % insert the new event to the array
                         end
@@ -333,7 +333,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         devState.curPkt = emptyPacket();
                         devState.curRet = 0;
                         devState.curCWND = devState.CWmin; % reset cwnd to the minimum
-                        [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                        [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, 1); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
                         if(isNew== 1)
                              newSimEvents{newEveInd} = newSimEvent; % insert the new event to the array
                         end
@@ -353,8 +353,8 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                                 [devState, newSimEvents] = retransmitTry(devState, curTime);
                             end
                         else
-                            % the device is not waiting for an ACK at all
-                             [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                            % the device is not waiting for an ACK at all -
+                             [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, 0); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
                             if(isNew== 1)
                                  newSimEvents{1} = newSimEvent; % insert the new event to the array
                             end
@@ -363,7 +363,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                     elseif(devState.isWaitingForACK == 0)
                         % the device is not waiting for ACK now, it might
                         % be a retransmit attempt, so just ignore the ACK
-                        [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                        [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, 0); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
                         if(isNew== 1)
                              newSimEvents{1} = newSimEvent; % insert the new event to the array
                         end
@@ -538,7 +538,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                             % TODO: fix it, because we have to go to
                             % START_CSMA rather than WAIT_DIFS - it's after
                             % reception and sending ACK transmission!
-                            [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                            [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, 0); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
                             if(isNew == 1)
                                  newSimEvents{1} = newSimEvent; % insert the new event to the array
                             end

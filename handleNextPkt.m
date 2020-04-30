@@ -1,4 +1,4 @@
-function [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime)
+function [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, isBackoffMandatory)
     %handle the next packet to send, if exists
     %   check if we have more packets to send in our queue; assume the sent 
     %   packet is not in the queue anymore
@@ -33,9 +33,16 @@ function [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime)
         [devState.curPkt, devState.queue] = getPktFromQueue(devState.queue); % the packet which we have to send
         % there is a packet to send
         if(devState.medCtr == 0)
-            % medium is free from our point of view
-             devState = changeDevState(devState, devStateType.WAIT_DIFS); % it has to be WAIT_DIFS state... because we must excecute a new backoff process
-            % creare a 'SET_TIMER' event after DIFS time
+            % medium is free from our point of view, we have to change state
+            % to WAIT_DIFS if it is the end of a successful transmission,
+            % and to START_CSMA otherwise
+            if(isBackoffMandatory ==1)
+                devState = changeDevState(devState, devStateType.WAIT_DIFS); % it has to be WAIT_DIFS state... because we must excecute a new backoff process
+            else
+                devState = changeDevState(devState, devStateType.START_CSMA); % it has to be START_CSMA otherwise
+            end
+            % creare a 'SET_TIMER' event after DIFS time - we need it
+            % anyway
             opts = createOpts(devState.curPkt, timerType.DIFS);
             newSimEvent = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);
             isNew = 1;
