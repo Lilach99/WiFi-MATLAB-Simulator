@@ -13,6 +13,6 @@ function [wantedEventInd] = findEvent(e, eventsList)
     
     eventsTimes = cell2mat(cellfun(@(s)s.time, eventsList,'uni',false));
     curTimeEvents = (eventsTimes == e.time); % binary rep. 
-    
+
     wantedEventInd = find(curStationEvents & curTypeEvents & curTimeEvents); % events which satisfies both conditions (should be only one...) 
 end

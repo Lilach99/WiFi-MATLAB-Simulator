@@ -14,7 +14,7 @@ link4 = createlinkInfo(4, 3, 6, 0.1,  100, 2000, 0);
 
 devsParams = {dev1P, dev2P, dev3P, dev4P};
 phyNetParams.numDevs = 4;
-phyNetParams.linksLens = [0, 10, 20, 22.36; 10, 0, 22.36, 20; 20, 22.36, 0, 10; 22.36, 20, 10, 0]; % in KMs
+phyNetParams.linksLens = 0.01*[0, 10, 20, 22.36; 10, 0, 22.36, 20; 20, 22.36, 0, 10; 22.36, 20, 10, 0]; % in KMs
 logNetParams.linksInfo = {link1, link2, link3, link4};
 simulationParams.finishTime = 10; % in seconds
 simulationParams.debugMode = 1;
@@ -49,7 +49,7 @@ end
 % 'ResultsGraphs'
 if(simulationParams.debugMode)
     for s=1:4
-        plotAllTimelinesForDev(s, output.eventsDS, simulationParams.finishTime);
+        plotAllTimelinesForDev(s, output.eventsDS, simulationParams.finishTime, phyNetParams.numDevs);
     end
 end
 

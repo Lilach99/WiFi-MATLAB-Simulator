@@ -10,6 +10,7 @@ function [devState, newSimEvents] = retransmitTry(devState, curTime)
     if(devState.curRet < devState.numRet)
         % we still have some retries
         devState.curRet  = devState.curRet + 1;
+        devState.SSRC = devState.SSRC + 1;
         if(devState.medCtr == 0)
             % medium is free from our point of view, but we must excecute a
             % new backoff procedure because it was an unsuccessful transmission
@@ -30,8 +31,11 @@ function [devState, newSimEvents] = retransmitTry(devState, curTime)
              newSimEvents{1} = newSimEvent; % insert the new event to the array
         end
         devState.curRet = 0;
-        devState.curCWND = devState.CWmin; % reset cwnd to the minimum
-              
+        if(devState.SSRC == devState.numRet)
+            % in this case we have to reset curCWND to the minimum
+            devState.curCWND = devState.CWmin;
+        end
+    
     end
     
 end

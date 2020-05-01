@@ -23,6 +23,10 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
         handled = 1;
     elseif((eventType == devEventType.REC_END) && (isPacketMine(devEve.pkt, devState.dev) == 0)) % treat like "MED_FREE", bacause the packet is NOT destined to this device
         devState.medCtr = devState.medCtr - 1;
+        if(devState.medCtr < 0)
+            negativeMedCtrException = MException('MyComponent:noSuchVariable', 'negativeMedCtrException!');
+            throw(negativeMedCtrException);
+        end
         handled = 1;
     elseif((eventType == devEventType.REC_END) && (isPacketMine(devEve.pkt, devState.dev) == 1) && (devState.isColl > 1))
         % "end of reception" of a collided packet for us, not the original we started to receive, treat as 'MED_FREE' 
@@ -120,7 +124,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         devState = changeDevState(devState, devStateType.TRAN_PACK);
                         opts = createOpts(devState.curPkt, timerType.NONE);
                         newSimEvents{1} = createEvent(simEventType.TRAN_START, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
-                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.pktLenFunc(devState.curPkt.length, devState.curPkt.link.phyRate), devState.dev, opts); % TODO: now it does not work, we have to ninsure it works: calculating the transmission time according to the device's provided function, 10 is instead of the PHY rate...
+                        newSimEvents{2} = createEvent(simEventType.TRAN_END, curTime + devState.pktLenFunc(devState.curPkt.length, devState.curPkt.link.phyRate), devState.dev, opts); 
                     elseif(handled == 0)
                         illegalFlag = 1;
                     end
@@ -331,10 +335,12 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         % the sent packet was already taken out of the device's queue
                         devState.sucSentBytes = devState.sucSentBytes + devState.curPkt.length;
                         devState.curPkt = emptyPacket();
+                        % reset retry counters - it's a successful transmission!
                         devState.curRet = 0;
-                        devState.curCWND = devState.CWmin; % reset cwnd to the minimum
+                        devState.SSRC = 0; 
+                        devState.curCWND = devState.CWmin; % reset curCWND to the minimum, it's a successful transmission!
                         [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, 1); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
-                        if(isNew== 1)
+                        if(isNew == 1)
                              newSimEvents{newEveInd} = newSimEvent; % insert the new event to the array
                         end
                         

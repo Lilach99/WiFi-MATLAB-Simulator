@@ -60,11 +60,15 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
         if(size(simEventsList, 2)~=0) % we sould start handling only if there are events in the list...
             curTime = simEventsList{1}.time;
             i = findLastCurEvent(simEventsList, curTime); % finds the last event in the list that happens now
-            curSimEvents = sortByHandlingOrder(simEventsList(1:i)); % sorts the events according to their handling order
+            [curSimEvents, handlingOrder] = sortByHandlingOrder(simEventsList(1:i)); % sorts the events according to their handling order
             while(size(curSimEvents, 2) > 0) % foreach simEvent in currentsimEvents, new events might be added to this list during the handling the original events
                 
                 simEvent = curSimEvents{1}; % the struct
-                
+
+                % delete the whole cells of the currently handled simEvent from the lists
+                simEventsList(handlingOrder(1)) = []; % get the original index of the event, in the simEventsList (before the sortByHnadlingOrder sorting!!)
+                curSimEvents(1) = [];
+
                 if(simEvent.time < 0)
                     fprintf("negative time!!!!!");
                 end
@@ -228,7 +232,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                                 newInd = newInd + 1;
                             end
                         end
-                        % also, create simEventType.TRAN_END event for the src device
+                        % also, create devEventType.TRAN_END event for the src device
                         opts = createOpts(simEvent.pkt, simEvent.timerType);
                         tranEve = createEvent(devEventType.TRAN_END, curTime, curStation, opts);
                         [devStates{curStation}, moreNewSimEvents] = updateState(tranEve, devStates{curStation}, curTime);
@@ -290,11 +294,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         fprintf('invalid simEvent!') % we should not reach this line...
                 end
                 
-                % delete the whole cells of the handled simEvent from the lists
-                simInd = findEvent(simEvent, simEventsList); % the index of the event in the simEventsList and curEventsList might be different, due to the sortByHnadlingOrder
-                simEventsList(simInd) = []; 
-                curSimInd = findEvent(simEvent, curSimEvents);
-                curSimEvents(curSimInd) = [];
+                
             end       
             
         end

@@ -1,4 +1,4 @@
-function [orderedEvents] = sortByHandlingOrder(events)
+function [orderedEvents, handlingOrder] = sortByHandlingOrder(events)
     %sorts a list of events according to their desired order of handling
     %   this is done according to the simEventType enum field, the time of
     %   all of the evnets should be the same time (otherwise we do not need

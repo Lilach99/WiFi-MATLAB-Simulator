@@ -13,14 +13,28 @@ function [devState] = createDevInitState(devParams, ackTO)
     devState.isACKToExp = 0; % a control it which should be 1 if an ACK TO occurred during ACK reception
                         
     devState.queue = createQueue(100); % the packets queue of the device, 100 is the intial size, it may grow
+    
+    devState.CWmin = 1;
+    devState.CWmax = 1023;
+    devState.curCWND = devState.CWmin;
     devState.curRet = 0; % number of retreis on the current packet
+    devState.SSRC = 0; % number of retries of the station (STA short retry count, bacause we are not using RTS/CST)
+    % NOTE THAT:
+    % curRet increases whenever an unsuccessful transmission attempt of the
+    % current packet occures, and it is being reset with every new packet 
+    % or valid ACK arrival;
+    % SSRC increases whenever ANY curRet increases, and is being reset on
+    % every valid ACK arrival (so if we have a sequence of packet
+    % discardings - SSRC will continue increasing while curRet will be
+    % reset with every new packet!)
+    % curCWND is being doubled upon a collision; it is being reset on every 
+    % ACK arrival (successful transmission) and whenever SSRC reaches numRet 
+    % (so if we have a sequence of packet discardings - curCWND won't be
+    % reset!)
+    
     devState.curBackoff = -1; % -1 stands for no ongoing backoff, the number is the amount of time we have to wait from now
     devState.startBackoffTime = -1; % -1 stands for no ongoing backoff, the number is the time when we started to count the backoff
     devState.isColl = 0;
-    
-    devState.curCWND = 1;
-    devState.CWmin = 1;
-    devState.CWmax = 1023;
     
     % Standard parameters    
     devState.dev = devParams.dev;
