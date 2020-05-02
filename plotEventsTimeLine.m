@@ -1,7 +1,7 @@
 function [] = plotEventsTimeLine(station, type, desEvents, simTime, totalNumDevs)
-%gets the needed info and plots the transmit/receive intervals of the
-%device
-%   assume simTime is given in seconds
+    %gets the needed info and plots the transmit/receive intervals of the
+    %device
+    %   assume simTime is given in seconds
 
     eventsTimes = cell2mat(cellfun(@(s)s.time, desEvents,'uni',0));
     eventTypesEnums = cellfun(@(s)s.type, desEvents,'uni',0);

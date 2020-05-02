@@ -1,5 +1,6 @@
 function [devState, newSimEvents] = retransmitTry(devState, curTime)
     %handled a retransmit try in case of an ACK timeout
+    % disp('ACK TO occurred!');
     newSimEvents=[];
     if(devState.curRet > 0)
         % we have to increase CW only after unsuccessfun REtransmission!

@@ -14,7 +14,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
      % link is one directional in the DSs, from src to dst
     
     fprintf('Simulator started...');
- 
+        
     % take params from the structs:
     numDevs = phyNetParams.numDevs;
     linkLens = phyNetParams.linksLens;
@@ -39,10 +39,11 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     % create the devices' states cell array
     for i=1:numDevs
         % ACK Timeout = 2 * Air Propagation Time (max) + SIFS + Time to transmit 14 byte ACK frame 
-        ackTO = 2*max(APD(i, :)) + devsParams{i}.SIFS + devsParams{i}.ackLenFunc(6*10^6); % according to the minimum PHY rate
+        ackTO = 4*max(APD(i, :)) + devsParams{i}.SIFS + devsParams{i}.ackLenFunc(6*10^6); % according to the minimum PHY rate
         devStates{i} = createDevInitState(devsParams{i}, ackTO);
     end
-
+    
+    setGlobaleventInd(0); % initiate the global variable eventInd
     % create the initial simEventType.START_SIM event for the simulation
     simEventsList{1} = createEvent(simEventType.START_SIM, curTime, 0); % station number '0' stands for a global event, which does not relate to a specific station
         
@@ -60,13 +61,18 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
         if(size(simEventsList, 2)~=0) % we sould start handling only if there are events in the list...
             curTime = simEventsList{1}.time;
             i = findLastCurEvent(simEventsList, curTime); % finds the last event in the list that happens now
-            [curSimEvents, handlingOrder] = sortByHandlingOrder(simEventsList(1:i)); % sorts the events according to their handling order
+            [curSimEvents, ~] = sortByHandlingOrder(simEventsList(1:i)); % sorts the events according to their handling order
             while(size(curSimEvents, 2) > 0) % foreach simEvent in currentsimEvents, new events might be added to this list during the handling the original events
                 
                 simEvent = curSimEvents{1}; % the struct
-
+                eventInd = findEvent(curSimEvents{1}.id, curSimEvents{1}.station, simEventsList); % get the index of the event in the list, using it's event unique ID
+                % to catch bugs:
+                if(simEventsList{eventInd}.type ~= curSimEvents{1}.type)
+                    listHandlingBug = MException('MyComponent:noSuchVariable', 'different events deleted! error!');
+                    throw(listHandlingBug);
+                end
                 % delete the whole cells of the currently handled simEvent from the lists
-                simEventsList(handlingOrder(1)) = []; % get the original index of the event, in the simEventsList (before the sortByHnadlingOrder sorting!!)
+                simEventsList(eventInd) = []; 
                 curSimEvents(1) = [];
 
                 if(simEvent.time < 0)
@@ -176,17 +182,17 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % event per station!
                         timerSimInd = findTimer(curStation, simEvent.timerType, simEventsList);
                         % delete the whole cells of the SET_TIMER simEvent
-                        simEventsList(timerSimInd) = [];
-                        if(simEvent.time == curTime)
+                        if(simEventsList{timerSimInd}.time == curTime)
                             % we have to delete a timer which is schuduled
                             % to now !!! so we have to delete it from curSimEvents!
                             timerCurInd = findTimer(curStation, simEvent.timerType, curSimEvents);
                             curSimEvents(timerCurInd) = [];
                         end
-    
+                        simEventsList(timerSimInd) = [];
+                        
                     case simEventType.TRAN_START 
                         curPkt = simEvent.pkt; % 'opts' exists in this case, and it contains the packet which is being transmitted right now
-                        disp(curPkt.type);
+                        %disp(curPkt.type);
                         curRet = devStates{curStation}.curRet;
                         if(curPkt.type ~= packetType.ACK)
                             % insert the packet to the packets DS if it's
@@ -208,7 +214,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         end
                         % insert the new events to the simEvents list
                         simEventsList = saveNewEvents(newSimEvents, simEventsList);
-                        curSimEvents = updateEventsList(newSimEvents, curTime, curSimEvents); % insert new events which have to be handled right now to the current events list
+                        curSimEvents =updateEventsList(newSimEvents, curTime, curSimEvents); % insert new events which have to be handled right now to the current events list
     
                     case simEventType.TRAN_END
                         curPkt = simEvent.pkt;
@@ -239,7 +245,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % insert the new events that the device might triggered 
                         % to the simEvents list
                         simEventsList = saveNewEvents([newSimEvents, moreNewSimEvents], simEventsList);
-                        curSimEvents = updateEventsList([newSimEvents, moreNewSimEvents], curTime, curSimEvents); % insert new events which have to be handled right now to the current events list
+                        curSimEvents =updateEventsList([newSimEvents, moreNewSimEvents], curTime, curSimEvents); % insert new events which have to be handled right now to the current events list
                                             
                     case simEventType.REC_START
                         % save packet info. to the documentation DS
@@ -255,7 +261,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % insert the new events that the device might triggered 
                         % to the simEvents list
                         simEventsList = saveNewEvents(newSimEvents, simEventsList);
-                        curSimEvents = updateEventsList(newSimEvents, curTime, curSimEvents); % insert new events which have to be handled right now to the current events list
+                        curSimEvents =updateEventsList(newSimEvents, curTime, curSimEvents); % insert new events which have to be handled right now to the current events list
                      
                     case simEventType.REC_END
                         curPkt = simEvent.pkt;
@@ -271,7 +277,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % insert the new events that the device might triggered 
                         % to the simEvents list
                         simEventsList = saveNewEvents(newSimEvents, simEventsList);
-                        curSimEvents = updateEventsList(newSimEvents, curTime, curSimEvents); % insert new events which have to be handled right now to the current events list
+                        curSimEvents =updateEventsList(newSimEvents, curTime, curSimEvents); % insert new events which have to be handled right now to the current events list
                                      
                     case simEventType.COLL_INC
                         % increase the collisions counter by 1

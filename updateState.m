@@ -9,6 +9,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
 %     disp(devState.dev);
 %     disp(devState.curState);
 %     disp(devEve.type);
+
     
     newSimEvents = {};
     eventType = devEve.type;
@@ -45,6 +46,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
     if(eventType == devEventType.NEW_PACKET)
             % we have to push the packet to the device's queue
             devState.queue = insertPacketToQueue(devState.queue, devEve.pkt);
+            % disp(['queue size of dev ',int2str(devState.dev),'is: ', int2str(devState.queue.tail)]);
             handled = 1; % only if it's 'IDLE' state we will actually start sensing later
             % if it is idle - we will take the packet from the queue in the
             % switch
@@ -58,6 +60,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                 
                 case devEventType.NEW_PACKET
                     [devState.curPkt, devState.queue] = getPktFromQueue(devState.queue); % the packet which we have to send, it is removed from the queue
+                    % disp(['queue size of dev ',int2str(devState.dev),'is: ', int2str(devState.queue.tail)]);
                     % there is a packet to send
                     if(devState.medCtr == 0)
                         % medium is free from our point of view
