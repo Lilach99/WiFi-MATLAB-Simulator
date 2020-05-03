@@ -39,7 +39,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     % create the devices' states cell array
     for i=1:numDevs
         % ACK Timeout = 2 * Air Propagation Time (max) + SIFS + Time to transmit 14 byte ACK frame 
-        ackTO = 4*max(APD(i, :)) + devsParams{i}.SIFS + devsParams{i}.ackLenFunc(6*10^6); % according to the minimum PHY rate
+        ackTO = 2*max(APD(i, :)) + 4*devsParams{i}.SIFS + devsParams{i}.ackLenFunc(6*10^6); % according to the minimum PHY rate
         devStates{i} = createDevInitState(devsParams{i}, ackTO);
     end
     
@@ -51,7 +51,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     packetsDS = {}; % packets documentation DS
     collCnt = 0; % collisions counter
     linksDS = initialLinksDS(numLinks, linksInfo);
-    eventsDS = cell(1, 3000); % useful in Debug mode, events documentation DS, maybe it's better not to pre-allocate...    
+    eventsDS = cell(1, 1000); % useful in Debug mode, events documentation DS, maybe it's better not to pre-allocate...    
     eventsCnt = 1;
     
     % run this loop until the simulation time ends or both of the stations

@@ -1,4 +1,4 @@
-function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot)
+function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, distFactor)
     %testing function, simulates a network with the given paraeters
     %   for now, numDevs can be 2 or 4 
     
@@ -6,25 +6,25 @@ function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot)
         
         case 2
             %  for 2 devices, 1 pTp link:
-            dev1P = createDevParams(1, 16, slotTime, 14, @ackLengthFunc, @pktLengthFunc); % SIFS and SlotTime are in microseconds
-            dev2P = createDevParams(2, 16, slotTime, 14, @ackLengthFunc, @pktLengthFunc);
+            dev1P = createDevParams(1, 16*10^-6, slotTime, 14, @ackLengthFunc, @pktLengthFunc); % SIFS and SlotTime are in microseconds
+            dev2P = createDevParams(2, 16*10^-6, slotTime, 14, @ackLengthFunc, @pktLengthFunc);
 
-            link1 = createlinkInfo(1, 2, 6, 0.1, 2000, 2000, 0); % rates - in Mbps!! PHY rate and then APP (DATA) rate
-            link2 = createlinkInfo(2, 1, 6, 0.1,  2000, 2000, 0);
+            link1 = createlinkInfo(1, 2, 6, 0.1, 100, 2000, 0); % rates - in Mbps!! PHY rate and then APP (DATA) rate
+            link2 = createlinkInfo(2, 1, 6, 0.1,  100, 2000, 0);
 
             devsParams = {dev1P, dev2P};
             phyNetParams.numDevs = numDevs;
-            phyNetParams.linksLens = [0, 10; 10, 0]; % in KMs
+            phyNetParams.linksLens = distFactor*[0, 10; 10, 0]; % in KMs
             logNetParams.linksInfo = {link1, link2};
             simulationParams.finishTime = simTime; % in seconds
             simulationParams.debugMode = debMode;
 
         case 4
             % for 4 devices:
-            dev1P = createDevParams(1, 16, slotTime, 14, @ackLengthFunc, @pktLengthFunc); % SIFS and SlotTime are in microseconds
-            dev2P = createDevParams(2, 16, slotTime, 14, @ackLengthFunc, @pktLengthFunc);
-            dev3P = createDevParams(3, 16, slotTime, 14, @ackLengthFunc, @pktLengthFunc); 
-            dev4P = createDevParams(4, 16, slotTime, 14, @ackLengthFunc, @pktLengthFunc);
+            dev1P = createDevParams(1, 16*10^-6, slotTime, 14, @ackLengthFunc, @pktLengthFunc); % SIFS and SlotTime are in microseconds
+            dev2P = createDevParams(2, 16*10^-6, slotTime, 14, @ackLengthFunc, @pktLengthFunc);
+            dev3P = createDevParams(3, 16*10^-6, slotTime, 14, @ackLengthFunc, @pktLengthFunc); 
+            dev4P = createDevParams(4, 16*10^-6, slotTime, 14, @ackLengthFunc, @pktLengthFunc);
 
             link1 = createlinkInfo(1, 2, 6, 0.1, 100, 2000, 0); % rates - in Mbps!! PHY rate and then APP (DATA) rate
             link2 = createlinkInfo(2, 1, 6, 0.1,  100, 2000, 0);

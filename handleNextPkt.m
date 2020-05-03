@@ -31,8 +31,9 @@ function [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, isBac
         % there is another packet to send! immediately start
         % the sensing process
         [devState.curPkt, devState.queue] = getPktFromQueue(devState.queue); % the packet which we have to send
-        % disp(['queue size of dev ',int2str(devState.dev),'is: ', int2str(devState.queue.tail)]);
-        % there is a packet to send
+        % disp(['queue size of dev ',int2str(devState.dev),'is: ', int2str(devState.queue.tail),' curCWND is:',int2str(devState.curCWND)]);
+        
+         % there is a packet to send
         if(devState.medCtr == 0)
             % medium is free from our point of view, we have to change state
             % to WAIT_DIFS if it is the end of a successful transmission,

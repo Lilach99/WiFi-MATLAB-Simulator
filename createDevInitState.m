@@ -14,7 +14,7 @@ function [devState] = createDevInitState(devParams, ackTO)
                         
     devState.queue = createQueue(100); % the packets queue of the device, 100 is the intial size, it may grow
     
-    devState.CWmin = 1;
+    devState.CWmin = 15;
     devState.CWmax = 1023;
     devState.curCWND = devState.CWmin;
     devState.curRet = 0; % number of retreis on the current packet

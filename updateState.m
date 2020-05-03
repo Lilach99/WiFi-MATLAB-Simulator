@@ -46,7 +46,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
     if(eventType == devEventType.NEW_PACKET)
             % we have to push the packet to the device's queue
             devState.queue = insertPacketToQueue(devState.queue, devEve.pkt);
-            % disp(['queue size of dev ',int2str(devState.dev),'is: ', int2str(devState.queue.tail)]);
+            % disp(['queue size of dev ',int2str(devState.dev),'is: ', int2str(devState.queue.tail),' curCWND is:',int2str(devState.curCWND)]);
             handled = 1; % only if it's 'IDLE' state we will actually start sensing later
             % if it is idle - we will take the packet from the queue in the
             % switch
@@ -60,7 +60,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                 
                 case devEventType.NEW_PACKET
                     [devState.curPkt, devState.queue] = getPktFromQueue(devState.queue); % the packet which we have to send, it is removed from the queue
-                    % disp(['queue size of dev ',int2str(devState.dev),'is: ', int2str(devState.queue.tail)]);
+                    % disp(['queue size of dev ',int2str(devState.dev),'is: ', int2str(devState.queue.tail),' curCWND is:',int2str(devState.curCWND)]);
                     % there is a packet to send
                     if(devState.medCtr == 0)
                         % medium is free from our point of view
@@ -407,6 +407,14 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                              devState.isColl = devState.isColl - 1; 
                             % here we also have to handle as 'MED_FREE'
                             devState.medCtr = devState.medCtr - 1;
+                            if(devState.medCtr == 0)
+                                % the medium is sensed as free
+                                devState = changeDevState(devState, devStateType.WAIT_DIFS);
+                                % creare a 'SET_TIMER' event after DIFS time
+                                opts = createOpts(emptyPacket(), timerType.DIFS);
+                                newSimEvents{1} = createEvent(simEventType.SET_TIMER, curTime + devState.DIFS, devState.dev, opts);
+                            end
+                        
                         elseif(devState.isColl == 0)
                             fprintf("it could be that a non-collided packet for us will end during WAIT_FOR_ACK");
                         end
