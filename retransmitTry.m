@@ -2,6 +2,7 @@ function [devState, newSimEvents] = retransmitTry(devState, curTime)
     %handled a retransmit try in case of an ACK timeout
     % disp('ACK TO occurred!');
     newSimEvents=[];
+    %disp(int2str(devState.SSRC));
     if(devState.curRet > 0)
         % we have to increase CW only after unsuccessfun REtransmission!
         devState.curCWND = min(devState.curCWND*2 + 1, devState.CWmax);
@@ -27,11 +28,11 @@ function [devState, newSimEvents] = retransmitTry(devState, curTime)
         % no more retries!
         devState.lostBytes = devState.lostBytes + devState.curPkt.length; % save info about the lost packet
         devState.curPkt = emptyPacket(); % then delete it, we do not want to send it again...
+        devState.curRet = 0;
         [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, 1); % maybe we have more packets to send, so we handle it, backoff is mandatory
         if(isNew == 1)
              newSimEvents{1} = newSimEvent; % insert the new event to the array
         end
-        devState.curRet = 0;
         if(devState.SSRC == devState.numRet)
             % in this case we have to reset curCWND to the minimum
             devState.curCWND = devState.CWmin;

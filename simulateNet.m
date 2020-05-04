@@ -26,14 +26,14 @@ function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, d
             dev3P = createDevParams(3, 16*10^-6, slotTime, 14, @ackLengthFunc, @pktLengthFunc); 
             dev4P = createDevParams(4, 16*10^-6, slotTime, 14, @ackLengthFunc, @pktLengthFunc);
 
-            link1 = createlinkInfo(1, 2, 6, 0.1, 100, 2000, 0); % rates - in Mbps!! PHY rate and then APP (DATA) rate
-            link2 = createlinkInfo(2, 1, 6, 0.1,  100, 2000, 0);
-            link3 = createlinkInfo(3, 4, 6, 0.1,  100, 2000, 0);
-            link4 = createlinkInfo(4, 3, 6, 0.1,  100, 2000, 0);
+            link1 = createlinkInfo(1, 2, 6, 0.1, 1460, 1460, 0); % rates - in Mbps!! PHY rate and then APP (DATA) rate
+            link2 = createlinkInfo(2, 1, 6, 0.1,  1460, 1460, 0);
+            link3 = createlinkInfo(3, 4, 6, 0.1,  1460, 1460, 0);
+            link4 = createlinkInfo(4, 3, 6, 0.1,  1460, 1460, 0);
 
             devsParams = {dev1P, dev2P, dev3P, dev4P};
             phyNetParams.numDevs = numDevs;
-            phyNetParams.linksLens = [0, 10, 20, 22.36; 10, 0, 22.36, 20; 20, 22.36, 0, 10; 22.36, 20, 10, 0]; % in KMs
+            phyNetParams.linksLens = getLinksLenfor4Devs(distFactor); % in KMs
             logNetParams.linksInfo = {link1, link2, link3, link4};
             simulationParams.finishTime = simTime; % in seconds
             simulationParams.debugMode = debMode;

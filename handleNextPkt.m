@@ -24,7 +24,7 @@ function [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, isBac
         
     elseif(devState.queue.tail == 1)
         % we are not trying to send a packet now and our queue is empty
-         devState = changeDevState(devState, devStateType.IDLE);
+        devState = changeDevState(devState, devStateType.IDLE);
         devState.curPkt = emptyPacket();
         
     else

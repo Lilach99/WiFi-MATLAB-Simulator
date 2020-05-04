@@ -3,10 +3,10 @@ function [devState] = updateReceptionState(devState, pkt)
     
     switch pkt.type
         case packetType.DATA
-            devState.curState = devStateType.REC_PACK; % if it's a DATA packet
+            devState = changeDevState(devState, devStateType.REC_PACK); % if it's a DATA packet
             devState.curRecPkt = pkt;
         case packetType.ACK
-            devState.curState = devStateType.REC_ACK; % if it's an ACK packet
+            devState = changeDevState(devState, devStateType.REC_ACK); % if it's an ACK packet
             devState.curRecPkt = pkt;
         otherwise
             fprintf('error - empty packet was transmitted!')

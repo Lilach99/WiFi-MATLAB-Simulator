@@ -39,7 +39,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     % create the devices' states cell array
     for i=1:numDevs
         % ACK Timeout = 2 * Air Propagation Time (max) + SIFS + Time to transmit 14 byte ACK frame 
-        ackTO = 2*max(APD(i, :)) + 4*devsParams{i}.SIFS + devsParams{i}.ackLenFunc(6*10^6); % according to the minimum PHY rate
+        ackTO = 3*max(APD(i, :)) + devsParams{i}.SIFS + devsParams{i}.ackLenFunc(6*10^6); % according to the minimum PHY rate
         devStates{i} = createDevInitState(devsParams{i}, ackTO);
     end
     
@@ -83,6 +83,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                     disp(simEvent.type);
                     disp(simEvent.station);
                     disp(simEvent.time);
+                    disp(simEvent.pkt.type);
                 end
                 % add the simEvent to the events documentation DS if the system
                 % is in Debug mode
@@ -135,6 +136,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         pktLength = randi([linksInfo{curStation}.minPS, linksInfo{curStation}.maxPS]); % randomize the packet size
                         pkt = generatePacket(curStation, linksInfo{curStation}, pktLength , curTime, linksInfo{curStation}.src, linksInfo{curStation}.dst);
                         % update the device that it has a packet to send
+                        linksDS{curStation}.generatedPktCnt = linksDS{curStation}.generatedPktCnt + 1;
                         genDevEve = createEvent(devEventType.NEW_PACKET, curTime, linksInfo{curStation}.src, createOpts(pkt, timerType.NONE)); 
                         [devStates{linksInfo{curStation}.src}, newSimEvents] = updateState(genDevEve, devStates{linksInfo{curStation}.src}, curTime);
                         simEventsList = saveNewEvents(newSimEvents, simEventsList);
@@ -225,7 +227,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                             packetsDS = modifyPacketEndInDS(packetsDS, curRet, curPkt, curTime);
                         end
                         desLinkInd = getLinkInfoOfPacket(curPkt, linksInfo);
-                        linksDS{desLinkInd} = updateLinkDSCell(linksDS{desLinkInd}, curPkt, simEventType.TRAN_END); % update meta data in the linksDS
+                        linksDS{desLinkInd} = updateLinkDSCell(devStates{curStation}, linksDS{desLinkInd}, curPkt, simEventType.TRAN_END); % update meta data in the linksDS
                         % create a REC_END event for all devices but the src
                         % of the packet
                         opts = createOpts(curPkt, simEvent.timerType);
@@ -269,7 +271,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                             % this is a packet for us so we have to update
                             % its details in the linksInfo DS
                             desLinkInd = getLinkInfoOfPacket(curPkt, linksInfo);
-                            linksDS{desLinkInd} = updateLinkDSCell(linksDS{desLinkInd}, curPkt, simEventType.REC_END); % update meta data in the linksDS
+                            linksDS{desLinkInd} = updateLinkDSCell(devStates{curStation}, linksDS{desLinkInd}, curPkt, simEventType.REC_END); % update meta data in the linksDS
                         end
                         opts = createOpts(curPkt, simEvent.timerType);
                         recEndEve = createEvent(devEventType.REC_END, curTime, curStation, opts);
@@ -293,7 +295,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                             % this is a packet for us so we have to update
                             % its details in the linksInfo DS 
                              desLinkInd = getLinkInfoOfPacket(curPkt, linksInfo);
-                             linksDS{desLinkInd} = updateLinkDSCell(linksDS{desLinkInd}, curPkt, simEventType.COLL_INC); % update meta data in the linksDS
+                             linksDS{desLinkInd} = updateLinkDSCell(devStates{curStation}, linksDS{desLinkInd}, curPkt, simEventType.COLL_INC); % update meta data in the linksDS
                         end
                         
                     otherwise

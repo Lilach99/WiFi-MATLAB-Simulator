@@ -3,7 +3,7 @@ function [packetsDS, packet] = insertPacketToDS(packetsDS, curRet, packet, start
     %   writes only its metadata and starting time! other info is unknown
     %   returns the updated DS together with the packet, with its index in
     %   the DS
-    if(curRet == 0)
+    if(packet.ind==-1)
         % create a new packet documentation struct for the packet
         packet.ind = size(packetsDS, 2)+1;
         pd.pkt = packet;

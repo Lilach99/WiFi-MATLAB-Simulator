@@ -1,4 +1,4 @@
-function [linksDSCell] = updateLinkDSCell(linksDSCell, pkt, eventType)
+function [linksDSCell] = updateLinkDSCell(devState, linksDSCell, pkt, eventType)
     %updates a cell from the linksDS due to a simulation event
     %(transmission/reception/collision)
     %   checks the type of the packet and counts the transmitted bytes
@@ -8,7 +8,13 @@ function [linksDSCell] = updateLinkDSCell(linksDSCell, pkt, eventType)
         case simEventType.TRAN_END
             switch pkt.type
                 case packetType.DATA
-                    linksDSCell.dataTranCtr = linksDSCell.dataTranCtr + pkt.length;
+                    linksDSCell.dataTranBruto = linksDSCell.dataTranBruto + pkt.length;
+                    if(devState.curRet == 0)
+                        % it's the first transmission of this packet, so
+                        % count it in the neto counter
+                        linksDSCell.dataTranNeto = linksDSCell.dataTranNeto + pkt.length;
+                        linksDSCell.packetsCnt = linksDSCell.packetsCnt + 1;
+                    end
                 case packetType.ACK
                     linksDSCell.ctrlTranCtr = linksDSCell.ctrlTranCtr + pkt.length;
                 otherwise
@@ -18,7 +24,10 @@ function [linksDSCell] = updateLinkDSCell(linksDSCell, pkt, eventType)
         case simEventType.REC_END
             switch pkt.type
                 case packetType.DATA
-                    linksDSCell.dataRecCtr = linksDSCell.dataRecCtr + pkt.length;
+                    linksDSCell.dataRecBruto = linksDSCell.dataRecBruto + pkt.length;
+%                     if(isNewPakcet(pkt, devState) == 1)
+%                         % this is the first time we receive the packet
+%                     end
                 case packetType.ACK
                     linksDSCell.ctrlRecCtr = linksDSCell.ctrlRecCtr + pkt.length;
                 otherwise
@@ -30,10 +39,10 @@ function [linksDSCell] = updateLinkDSCell(linksDSCell, pkt, eventType)
             switch pkt.type
                 case packetType.DATA
                     linksDSCell.dataCollCtr = linksDSCell.dataCollCtr + pkt.length;
-                    linksDSCell.dataRecCtr = linksDSCell.dataRecCtr - pkt.length;
+                    linksDSCell.dataRecBruto = linksDSCell.dataRecBruto - pkt.length;
                 case packetType.ACK
                     linksDSCell.ctrlCollCtr = linksDSCell.ctrlCollCtr + pkt.length;
-                    linksDSCell.ctrlRecCtr = linksDSCell.ctrlRecCtr - pkt.length;                
+                    linksDSCell.ctrlRecBruto = linksDSCell.ctrlRecCtr - pkt.length;                
                 otherwise
                     % do nothing
             end
