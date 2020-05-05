@@ -42,7 +42,7 @@ function [linksDSCell] = updateLinkDSCell(devState, linksDSCell, pkt, eventType)
                     linksDSCell.dataRecBruto = linksDSCell.dataRecBruto - pkt.length;
                 case packetType.ACK
                     linksDSCell.ctrlCollCtr = linksDSCell.ctrlCollCtr + pkt.length;
-                    linksDSCell.ctrlRecBruto = linksDSCell.ctrlRecCtr - pkt.length;                
+                    linksDSCell.ctrlRecCtr = linksDSCell.ctrlRecCtr - pkt.length;                
                 otherwise
                     % do nothing
             end

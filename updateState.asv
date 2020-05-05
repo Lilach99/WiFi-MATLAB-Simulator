@@ -260,7 +260,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                                 % ACK TO had already expired!
                                 % start a new sending attempt, if it's possible
                                 % ACK Timeout!!!
-                                devState.isWaitingForACK = 0; % we cannot wait anymore!
+                                devState.isWaitingForACK = 
                                 [devState, newSimEvents] = retransmitTry(devState, curTime);
                             end
                         else
@@ -293,7 +293,6 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                                     % ACK TO had already expired!
                                     % start a new sending attempt, if it's possible
                                     % ACK Timeout!!!
-                                    devState.isWaitingForACK = 0; % we cannot wait anymore!
                                     [devState, newSimEvents] = retransmitTry(devState, curTime);
                                 end
                             else
@@ -316,7 +315,6 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                                 % ACK TO had already expired!
                                 % start a new sending attempt, if it's possible
                                 % ACK Timeout!!!
-                                devState.isWaitingForACK = 0; % we cannot wait anymore!
                                 [devState, newSimEvents] = retransmitTry(devState, curTime);
                             end
                         else
@@ -358,7 +356,6 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                             % during reception, so we do not have to clear
                             % the corresponding timer
                             devState.isACKToExp = 0; % for the next time
-                            devState.isWaitingForACK = 0; % we cannot wait anymore!
                             opts = createOpts(emptyPacket(), timerType.ACK);
                             newSimEvents{newEveInd} = createEvent(simEventType.CLEAR_TIMER, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
                             newEveInd = newEveInd + 1;
@@ -387,7 +384,6 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                                 % ACK TO had already expired!
                                 % start a new sending attempt, if it's possible
                                 % ACK Timeout!!!
-                                devState.isWaitingForACK = 0; % we cannot wait anymore!
                                 [devState, newSimEvents] = retransmitTry(devState, curTime);
                             end
                         else
@@ -577,7 +573,6 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                                 % ACK TO had already expired!
                                 % start a new sending attempt, if it's possible
                                 % ACK Timeout!!!
-                                devState.isWaitingForACK = 0; % we cannot wait anymore!
                                 [devState, newSimEvents] = retransmitTry(devState, curTime);
                             end
                         else
