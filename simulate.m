@@ -6,9 +6,10 @@ import mlreportgen.dom.*;
 
 for h=1:10
   dists = getLinksLenfor4Devs(h); % in KMs
+  %dists = h*[0, 10; 10, 0];
   ST = 10^-5+calcSTfromNetAPD(dists, 2);
   disp(['Distance Factor: ', int2str(h)]);
-  simulateNet(ST, 30, 4, 0, 0, h);
+  simulateNet(9*10^-6, 5, 4, 0, 0, h);
 end
 
 

@@ -7,5 +7,6 @@ function [ACKpkt] = createACK(packet, devState, timeStamp)
     ACKpkt.dst = packet.src;
     ACKpkt.length = 14; % in bytes
     ACKpkt.timeStamp = timeStamp;
+    ACKpkt.packetInd = packet.ind;
 
 end

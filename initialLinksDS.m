@@ -19,6 +19,7 @@ function [linksDS] = initialLinksDS(numLinks, linksInfo)
         linksDS{l}.ctrlCollCtr = 0;    
         linksDS{l}.packetsCnt = 0;
         linksDS{l}.generatedPktCnt = 0;
+        linksDS{l}.recPktsInds = [];
     end
     
 end

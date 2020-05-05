@@ -209,9 +209,9 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                             % the "packetInd" filed in the ACK pakcet) - we
                             % have to count its length to the "dataRecNeto"
                             % field in the corrsponding linksDS cell!
-                            pktAcked = packetsDS{curPkt.packetInd}.pkt;
-                            if(isNewPacket(pktAcked, linksDS{pktAcked.linkInfo}) == 1)
-                                linksDS{pktAcked.linkInfo} = updateNewPktInLinksDSCell(linksDS{pktAcked.linkInfo}, pktAcked);
+                            pktAcked = 
+                            if(isNewPacket(curPkt, linksDS{curPkt.linkInfo}))
+                                updateNewPktInLinksDS(devState, linksDSCell, pkt, eventType)
                             end
                         end
                         % create a REC_START event for all devices but the src
