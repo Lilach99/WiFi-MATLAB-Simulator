@@ -11,7 +11,7 @@ for h=1
   %dists = h*[0, 10; 10, 0];
   ST = 10^-5+calcSTfromNetAPD(dists, 2);
   disp(['Distance Factor: ', int2str(h)]);
-  simulateNet(9e-6, 1, 4, 0, 0, h);
+  simulateNet(9e-6, 2, 4, 0, 0, h);
 end
 
 toc
