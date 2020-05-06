@@ -27,7 +27,7 @@ function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, d
             dev4P = createDevParams(4, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
 
             link1 = createlinkInfo(1, 2, 6, 1, 100, 2000, 0); % rates - in Mbps!! PHY rate and then APP (DATA) rate
-            link2 = createlinkInfo(2, 1, 6, 1,  100, 2000, 0);
+            link2 = createlinkInfo(2, 1, 6, 1, 100, 2000, 0);
             link3 = createlinkInfo(3, 4, 6, 1,  100, 2000, 0);
             link4 = createlinkInfo(4, 3, 6, 1,  100, 2000, 0);
 
