@@ -307,24 +307,32 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         
                    else
                         % not valid packet - throw it
-                        % take care of ACK waiting
-                        if(devState.isWaitingForACK == 1)
-                            if(devState.isACKToExp == 0)
-                                devState = changeDevState(devState, devStateType.WAIT_FOR_ACK);
-                            else
-                                % ACK TO had already expired!
-                                % start a new sending attempt, if it's possible
-                                % ACK Timeout!!!
-                                devState.isWaitingForACK = 0; % we cannot wait anymore!
-                                [devState, newSimEvents] = retransmitTry(devState, curTime);
-                            end
+                        if(isPacketMine(devEve.pkt, devState.dev) == 0)
+                            % this is not a packet for us!
+                            % so, we have to stay at this state until the
+                            % end of reception of OUR packet!
+                            % the medium state has already been treated
                         else
-                            [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, 0); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
-                                if(isNew == 1)
-                                     newSimEvents{1} = newSimEvent; % insert the new event to the array
+                            % this is a packet for us
+                            % take care of ACK waiting
+                            if(devState.isWaitingForACK == 1)
+                                if(devState.isACKToExp == 0)
+                                    devState = changeDevState(devState, devStateType.WAIT_FOR_ACK);
+                                else
+                                    % ACK TO had already expired!
+                                    % start a new sending attempt, if it's possible
+                                    % ACK Timeout!!!
+                                    devState.isWaitingForACK = 0; % we cannot wait anymore!
+                                    [devState, newSimEvents] = retransmitTry(devState, curTime);
                                 end
+                            else
+                                [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, 0); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
+                                    if(isNew == 1)
+                                         newSimEvents{1} = newSimEvent; % insert the new event to the array
+                                    end
+                            end
+                            fprintf('packet did not collide but still not valid');
                         end
-                        fprintf('packet did not collide but still not valid');
                     end
     
                 otherwise
@@ -368,7 +376,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                         % reset retry counters - it's a successful transmission!
                         devState.curRet = 0;
                         devState.SSRC = 0; 
-                        devState.curCWND = devState.CWmin; % reset curCWND to the minimum, it's a successful transmission!
+                        devState.curCWND = decreaseCWND(devState.curCWND, devState.CWmin, devState.backoffTech); % decrease curCWND, it's a successful transmission!
                         [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, 1); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
                         if(isNew == 1)
                              newSimEvents{newEveInd} = newSimEvent; % insert the new event to the array
@@ -390,7 +398,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                                 [devState, newSimEvents] = retransmitTry(devState, curTime);
                             end
                         else
-                            % the device is not waiting for an ACK at all -
+                            % the device is not waiting for an ACK at all 
                              [devState, newSimEvent, isNew] = handleNextPkt(devState, curTime, 0); % checks if there are more packets in the device's queue or state (current packet) and if so, handles it according to the protocol 
                              if(isNew == 1)
                                   newSimEvents{1} = newSimEvent; % insert the new event to the array

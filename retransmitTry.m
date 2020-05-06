@@ -4,8 +4,8 @@ function [devState, newSimEvents] = retransmitTry(devState, curTime)
     newSimEvents=[];
     %disp(int2str(devState.SSRC));
     if(devState.curRet > 0)
-        % we have to increase CW only after unsuccessfun REtransmission!
-        devState.curCWND = min(devState.curCWND*2 + 1, devState.CWmax);
+        % we have to increase CW only after unsuccessful REtransmission!
+        devState.curCWND = increaseCWND(devState.curCWND, devState.CWmax, devState.backoffTech);
     end
     devState.isWaitingForACK = 0; % the device is not waiting anymore
     devState.isACKToExp = 0;
@@ -34,8 +34,8 @@ function [devState, newSimEvents] = retransmitTry(devState, curTime)
              newSimEvents{1} = newSimEvent; % insert the new event to the array
         end
         if(devState.SSRC == devState.numRet)
-            % in this case we have to reset curCWND to the minimum
-            devState.curCWND = devState.CWmin;
+            % in this case we have to decrease curCWND 
+            devState.curCWND = decreaseCWND(devState.curCWND, devState.CWmin, devState.backoffTech);
         end
     
     end
