@@ -1,5 +1,10 @@
 import mlreportgen.dom.*;
 
+p = gcp('nocreate');
+if (isempty(p))
+    parpool(4);
+end
+
 % tests: 
 
 %[output]=simulateNet(9, 30, 2, 0, 0, 10);
@@ -12,7 +17,7 @@ link1InfoAPDST = cell(10, 1);
 
 % for h=1:10
 tic
-for h=1
+parfor h=1:10
   dists = getLinksLenfor4Devs(h); % in KMs
   %dists = h*[0, 10; 10, 0];
   ST = 10^-5+calcSTfromNetAPD(dists, 2);
