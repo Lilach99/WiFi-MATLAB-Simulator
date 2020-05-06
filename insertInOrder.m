@@ -4,6 +4,11 @@ function [eventsList] = insertInOrder(eventsList, newEvent)
     %   gets the new event and the array, and returns the
     %   updated array with the new value in the right places
     eventsList = [eventsList, newEvent];
-    [~,TimeSort]=sort(cell2mat((cellfun(@(s)s.time, eventsList,'uni',0)))); %Get the sorted order of times
-    eventsList = eventsList(TimeSort);
+    
+    % sort eventsList
+    [~,handlingOrder]=sort([eventsList.time]);
+    eventsList = eventsList(handlingOrder);
+
+%     [~,TimeSort]=sort(cell2mat((cellfun(@(s)s.time, eventsList,'uni',0)))); %Get the sorted order of times
+%     eventsList = eventsList(TimeSort);
 end

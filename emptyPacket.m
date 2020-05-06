@@ -1,4 +1,5 @@
 function [pkt] = emptyPacket()
+    coder.inline('always')
     %generates an "empty" packet
     %   this is a packet whose all fields are 'NONE' 
     
