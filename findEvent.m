@@ -16,14 +16,20 @@ function [wantedEventArrInd] = findEvent(eventID, eventStation, eventsList)
 %     timerTypesEnums = cellfun(@(s)s.timerType, eventsList,'uni',false);
 %     timerTypeNums = cellfun(@(s)double(s), timerTypesEnums,'uni',0); 
 %     eventsTimerTypes = cell2mat(timerTypeNums);
-
-    eventsIDs = cell2mat(cellfun(@(s)s.id, eventsList,'uni',0));
-    curIDEvent = (eventsIDs == eventID); % binary rep. for only this station's events (1 for this station's events, 0 otherwise)
     
-    eventsStations = cell2mat(cellfun(@(s)s.station, eventsList,'uni',0));
-    curStationEvents = (eventsStations == eventStation); % binary rep. for only this station's events (1 for this station's events, 0 otherwise)
+%     allCN = [eventsList.id]; % comma separated list expansion 
+    id_ind = [eventsList.id] == eventID;
+    station_ind = [eventsList.station] == eventStation;
+    wantedEventArrInd = find(id_ind & station_ind); % events which satisfies both conditions - just in case  
 
-    wantedEventArrInd = find(curIDEvent & curStationEvents); % events which satisfies both conditions - just in case 
+    
+%     eventsIDs = cell2mat(cellfun(@(s)s.id, eventsList,'uni',0));
+%     curIDEvent = (eventsIDs == eventID); % binary rep. for only this station's events (1 for this station's events, 0 otherwise)
+%     
+%     eventsStations = cell2mat(cellfun(@(s)s.station, eventsList,'uni',0));
+%     curStationEvents = (eventsStations == eventStation); % binary rep. for only this station's events (1 for this station's events, 0 otherwise)
+% 
+%     wantedEventArrInd = find(curIDEvent & curStationEvents); % events which satisfies both conditions - just in case 
     
     % disp(wantedEventArrInd);
     

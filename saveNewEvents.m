@@ -6,7 +6,11 @@ function [eventsList] = saveNewEvents(newEvents, eventsList)
     %  (usually 0, 1 or 2 cells)
     
     eventsList = [eventsList, newEvents];
-    [~,TimeSort]=sort(cell2mat((cellfun(@(s)s.time, eventsList,'uni',0)))); %Get the sorted order of times
-    eventsList = eventsList(TimeSort);
+%     [~,TimeSort]=sort(cell2mat((cellfun(@(s)s.time, eventsList,'uni',0)))); %Get the sorted order of times
+
+    [~,handlingOrder]=sort([eventsList.time]);
+    eventsList = eventsList(handlingOrder);
+
+%     eventsList = eventsList(TimeSort);
     
 end

@@ -45,7 +45,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     
     setGlobaleventInd(0); % initiate the global variable eventInd
     % create the initial simEventType.START_SIM event for the simulation
-    simEventsList{1} = createEvent(simEventType.START_SIM, curTime, 0); % station number '0' stands for a global event, which does not relate to a specific station
+    simEventsList = createEvent(simEventType.START_SIM, curTime, 0); % station number '0' stands for a global event, which does not relate to a specific station
         
     % output preperations:
     packetsDS = {}; % packets documentation DS
@@ -59,15 +59,15 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     while(curTime <= finTime) 
         % find the last simEvent happens now
         if(size(simEventsList, 2)~=0) % we sould start handling only if there are events in the list...
-            curTime = simEventsList{1}.time;
+            curTime = simEventsList(1).time;
             i = findLastCurEvent(simEventsList, curTime); % finds the last event in the list that happens now
             [curSimEvents, ~] = sortByHandlingOrder(simEventsList(1:i)); % sorts the events according to their handling order
             while(size(curSimEvents, 2) > 0) % foreach simEvent in currentsimEvents, new events might be added to this list during the handling the original events
                 
-                simEvent = curSimEvents{1}; % the struct
-                eventInd = findEvent(curSimEvents{1}.id, curSimEvents{1}.station, simEventsList); % get the index of the event in the list, using it's event unique ID
+                simEvent = curSimEvents(1); % the struct
+                eventInd = findEvent(curSimEvents(1).id, curSimEvents(1).station, simEventsList); % get the index of the event in the list, using it's event unique ID
                 % to catch bugs:
-                if(simEventsList{eventInd}.type ~= curSimEvents{1}.type)
+                if(simEventsList(eventInd).type ~= curSimEvents(1).type)
                     listHandlingBug = MException('MyComponent:noSuchVariable', 'different events deleted! error!');
                     throw(listHandlingBug);
                 end
@@ -76,7 +76,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                 curSimEvents(1) = [];
 
                 if(simEvent.time < 0)
-                    fprintf("negative time!!!!!");
+                    fprintf('negative time!!!!!');
                 end
                 
                 if(debMode == 1)
@@ -105,13 +105,14 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                     case simEventType.START_SIM
                         % create 'GEN'PACK' simEvent to start with for each
                         % link, not each station!
-                        genEvents = cell(1, numLinks);
+%                         genEvents = cell(1, numLinks);
+                        genEve = createEvent(simEventType.GEN_PACK, randi(10)*rndRange, 1);
                         for l=1:numLinks
                             pktTime = randi(10)*rndRange;
                             % create and insert simEvents to the data structure, 
                             % which we maintain sorted accordding to the 'time' field.
                             genEve = createEvent(simEventType.GEN_PACK, pktTime, l);
-                            genEvents{l} = genEve;
+                            genEvents(l) = genEve;
                         end
                         simEventsList = saveNewEvents(genEvents, simEventsList);
                         curSimEvents = updateEventsList(genEvents, curTime, curSimEvents); % insert new events which have to be handled right now to the current events list
@@ -184,7 +185,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % event per station!
                         timerSimInd = findTimer(curStation, simEvent.timerType, simEventsList);
                         % delete the whole cells of the SET_TIMER simEvent
-                        if(simEventsList{timerSimInd}.time == curTime)
+                        if(simEventsList(timerSimInd).time == curTime)
                             % we have to delete a timer which is schuduled
                             % to now !!! so we have to delete it from curSimEvents!
                             timerCurInd = findTimer(curStation, simEvent.timerType, curSimEvents);
@@ -217,12 +218,13 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % create a REC_START event for all devices but the src
                         % of the packet
                         opts = createOpts(curPkt, simEvent.timerType);
-                        newSimEvents = cell(1, numDevs-1); % everyone but the src needs a new event
+%                         newSimEvents = cell(1, numDevs-1); % everyone but the src needs a new event
+                        newSimEvents = createEvent(simEventType.REC_START, 0, 0); % just for init
                         newInd = 1;
                         for k=1:numDevs
                             if(k~=curPkt.src)
                                 % the src does not receive the packet...
-                                newSimEvents{newInd} = createEvent(simEventType.REC_START, curTime + APD(curPkt.src, k), k, opts);
+                                newSimEvents(newInd) = createEvent(simEventType.REC_START, curTime + APD(curPkt.src, k), k, opts);
                                 newInd = newInd + 1;
                             end
                         end
@@ -243,12 +245,13 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % create a REC_END event for all devices but the src
                         % of the packet
                         opts = createOpts(curPkt, simEvent.timerType);
-                        newSimEvents = cell(1, numDevs-1); % everyone but the src needs a new event
+%                         newSimEvents = cell(1, numDevs-1); % everyone but the src needs a new event
+                        newSimEvents = createEvent(simEventType.REC_START, 0, 0); % just for init
                         newInd = 1;
                         for k=1:numDevs
                             if(k~=curPkt.src)
                                 % the src does not receive the packet...
-                                newSimEvents{newInd} = createEvent(simEventType.REC_END, curTime + APD(curPkt.src, k), k, opts);
+                                newSimEvents(newInd) = createEvent(simEventType.REC_END, curTime + APD(curPkt.src, k), k, opts);
                                 newInd = newInd + 1;
                             end
                         end
