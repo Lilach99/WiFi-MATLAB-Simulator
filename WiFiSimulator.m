@@ -86,10 +86,10 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                 end
                 % add the simEvent to the events documentation DS if the system
                 % is in Debug mode
-                if(debMode == 1)
-                    eventsDS{eventsCnt} = simEvent;
-                    eventsCnt = eventsCnt + 1;
-                end
+                
+                eventsDS{eventsCnt} = simEvent;
+                eventsCnt = eventsCnt + 1;
+                
                 
                 curStation = simEvent.station;
                 % handle simEvent
@@ -122,9 +122,9 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         output.collCnt = collCnt;
                         output.finTime = curTime;
                         output.linksRes = linksDS;
-                        if(debMode == 1)
-                            output.eventsDS = eventsDS;
-                        end
+                        
+                        output.eventsDS = eventsDS;
+                       
                         
                     case simEventType.GEN_PACK
                         % happens per link, triggers a 'NEW_PACKET'
@@ -330,8 +330,6 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
         output.collCnt = collCnt;
         output.finTime = finTime;
         output.linksRes = linksDS;
-        if(debMode == 1)
-            output.eventsDS = eventsDS;
-        end
+        output.eventsDS = eventsDS;
     end
 end

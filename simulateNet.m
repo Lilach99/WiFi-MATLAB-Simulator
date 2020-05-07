@@ -1,4 +1,4 @@
-function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, distFactor, dataRate)
+function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, distFactor, dataRate, STType)
     %testing function, simulates a network with the given paraeters
     %   for now, numDevs can be 2 or 4 
     
@@ -84,7 +84,7 @@ function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, d
     % 'ResultsGraphs'
     if(wantPlot == 1)
         for s=1:numDevs
-            plotAllTimelinesForDev(s, output.eventsDS, simulationParams.finishTime, phyNetParams.numDevs);
+            plotAllTimelinesForDev(s, output.eventsDS, simulationParams.finishTime, phyNetParams.numDevs, 10*distFactor, STType);
         end
     end
 

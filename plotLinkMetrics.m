@@ -1,4 +1,4 @@
-function [] = plotLinkMetrics(linkInfoStandardST, linkInfoAPDST, linkLens, simTime)
+function [] = plotLinkMetrics(linkInfoStandardST, linkInfoAPDST, linkLens, simTime, link)
     %gets a DS of linkInfo structs of a specific link, in different lengths, 
     %and plots some comerative graphs between the standard ST and APD-based ST 
     
@@ -50,6 +50,8 @@ function [] = plotLinkMetrics(linkInfoStandardST, linkInfoAPDST, linkLens, simTi
     scatter(linkLens, linkAPDGoodpts,  '.', 'r');
     legend({'Standard SlotTime','APD-based SlotTime'},'Location','southwest');
     hold off
+    saveas(figure(1), [pwd ['/ResultsGraphs/ThroutputsLink', int2str(link)]]);
+    
     
     figure(2)   
     % plot both collided percisions graphs in the same figure
@@ -61,6 +63,8 @@ function [] = plotLinkMetrics(linkInfoStandardST, linkInfoAPDST, linkLens, simTi
     scatter(linkLens, linkAPDCollPer,  '.', 'r');
     legend({'Standard SlotTime','APD-based SlotTime'},'Location','southwest');
     hold off
+    saveas(figure(2), [pwd ['/ResultsGraphs/CollPercentageLink', int2str(link)]]);
+
     
 end
 
