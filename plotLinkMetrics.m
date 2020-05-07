@@ -22,7 +22,7 @@ function [] = plotLinkMetrics(linkInfoStandardST, linkInfoAPDST, linkLens, simTi
     for i=1:size(linkInfoAPDST, 1)
         % calculate the link effective throuput and goodput (successfully
         % received bytes) for each link length
-        linkAPDThpts(i) = (8*(linkInfoAPDST{i}.dataTranNeto)/simTime)/(10^6); % thpt in Mbps - neto, without retransmissions!
+        linkAPDThpts(i) = (8*(linkInfoAPDST{i}.dataTranBruto)/simTime)/(10^6); % thpt in Mbps - neto, without retransmissions!
         linkAPDGoodpts(i) = (8*(linkInfoAPDST{i}.dataRecNeto)/simTime)/(10^6); % goodput in Mbps
         linkAPDCollPer(i) = 100*(linkInfoAPDST{i}.dataCollCtr/linkInfoAPDST{i}.dataTranBruto); % collided to transmitted ratio
     end

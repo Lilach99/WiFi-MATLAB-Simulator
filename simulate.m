@@ -9,7 +9,7 @@ end
 
 %[output]=simulateNet(9, 30, 2, 0, 0, 10);
 simTime = 5;
-numLinks = 4;
+numLinks = 2;
 linkLens = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]; % in kms!
 % for example, we will always display the metrics of link 1:
 link1InfoStandardST = cell(10, 1);
@@ -18,13 +18,14 @@ link1InfoAPDST = cell(10, 1);
 % for h=1:10
 tic
 parfor h=1:10
-  dists = getLinksLenfor4Devs(h); % in KMs
-  %dists = h*[0, 10; 10, 0];
+  %dists = getLinksLenfor4Devs(h); % in KMs
+  dists = h*[0, 10; 10, 0];
+  %dists = getLinksLenfor6Devs(h); % in KMs
   ST = 10^-5+calcSTfromNetAPD(dists, 2);
   disp(['Distance Factor: ', int2str(h)]);
-  output = simulateNet(9*10^-6, simTime, numLinks, 0, 0, h);
+  output = simulateNet(9*10^-6, simTime, numLinks, 0, 0, h, 0.1); % the last parameter is dataRate in Mbps!
   link1InfoStandardST{h} = output.linksRes{1};
-  output = simulateNet(ST, simTime, numLinks, 0, 0, h);
+  output = simulateNet(ST, simTime, numLinks, 0, 0, h, 0.1);
   link1InfoAPDST{h} = output.linksRes{1};
 end
 
