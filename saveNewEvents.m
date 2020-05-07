@@ -8,8 +8,8 @@ function [eventsList] = saveNewEvents(newEvents, eventsList)
     eventsList = [eventsList, newEvents];
 %     [~,TimeSort]=sort(cell2mat((cellfun(@(s)s.time, eventsList,'uni',0)))); %Get the sorted order of times
 
-    [~,handlingOrder]=sort([eventsList.time]);
-    eventsList = eventsList(handlingOrder);
+    [~,TimeSort]=sort([eventsList.time]);
+    eventsList = eventsList(TimeSort);
 
 %     eventsList = eventsList(TimeSort);
     

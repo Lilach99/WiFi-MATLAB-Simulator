@@ -126,10 +126,7 @@ function [devState, newSimEvents] = updateState(devEve, devState, curTime)
                 case devEventType.TIMER_EXPIRED
                     % just for sanity check:
                     if(devEve.timerType == timerType.DIFS)
-                        devState = changeDevState(devState, devStateType.TRAN_PACK);
-                        opts = createOpts(devState.curPkt, timerType.NONE);
-                        newSimEvents(1) = createEvent(simEventType.TRAN_START, curTime, devState.dev, opts); % note that we have to make the simulation handle this event before increasing the current time !!!!
-                        newSimEvents(2) = createEvent(simEventType.TRAN_END, curTime + devState.pktLenFunc(devState.curPkt.length, devState.curPkt.link.phyRate), devState.dev, opts); 
+                        [devState, newSimEvents] = startTransmitting(devState, curTime);
                     elseif(handled == 0)
                         illegalFlag = 1;
                     end

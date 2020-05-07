@@ -8,7 +8,7 @@ end
 % tests: 
 
 %[output]=simulateNet(9, 30, 2, 0, 0, 10);
-simTime = 2;
+simTime = 5;
 numLinks = 4;
 linkLens = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]; % in kms!
 % for example, we will always display the metrics of link 1:
@@ -28,6 +28,6 @@ parfor h=1:10
   link1InfoAPDST{h} = output.linksRes{1};
 end
 
-% plotLinkMetrics(link1InfoStandardST, link1InfoAPDST, linkLens, simTime);
+plotLinkMetrics(link1InfoStandardST, link1InfoAPDST, linkLens, simTime);
 
 toc

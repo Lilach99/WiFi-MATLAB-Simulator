@@ -4,7 +4,7 @@ function [devState, newSimEvents] = startTransmitting(devState, curTime)
     newSimEvents(1) = createEvent(simEventType.TRAN_START, 0, 0); % just for init!
     newSimEvents(1) = [];
     
-    devState.curState = devStateType.TRAN_PACK;
+    devState = changeDevState(devState, devStateType.TRAN_PACK);
     devState.curBackoff = -1; % no active backoff
     devState.startBackoffTime = -1; % no active backoff
     opts = createOpts(devState.curPkt, timerType.NONE);

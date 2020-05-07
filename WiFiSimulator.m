@@ -34,7 +34,6 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     % nextSend = ones(1, numDevs);
     
     % empty queues for the packets the devices want to send
-    simEventsList = {};
     devStates = cell(1, numDevs);
     % create the devices' states cell array
     for i=1:numDevs
