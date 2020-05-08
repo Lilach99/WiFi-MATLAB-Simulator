@@ -3,9 +3,13 @@ function [] = plotEventsTimeLine(station, type, desEvents, simTime, totalNumDevs
     %device
     %   assume simTime is given in seconds
 
-    eventsTimes = cell2mat(cellfun(@(s)s.time, desEvents,'uni',0));
-    eventTypesEnums = cellfun(@(s)s.type, desEvents,'uni',0);
-    eventData = cell2mat(cellfun(@(s)double(s), eventTypesEnums,'uni',0)); 
+%     eventsTimes = cell2mat(cellfun(@(s)s.time, desEvents,'uni',0));
+%     eventTypesEnums = cellfun(@(s)s.type, desEvents,'uni',0);
+%     eventData = cell2mat(cellfun(@(s)double(s), eventTypesEnums,'uni',0)); 
+    eventsTimes = [desEvents.time];
+    eventTypesEnums = [desEvents.type];
+    eventData = double(eventTypesEnums);
+    
     timeLine = zeros(simTime*10^6, 1);
     times = linspace(0, simTime*10^6, simTime*10^6);
 
@@ -63,8 +67,8 @@ function [] = plotEventsTimeLine(station, type, desEvents, simTime, totalNumDevs
 %             recTimes = times(timeLine > 0); % should be > 0 rather than == 1, because it could be that there will be muliple reeptions simultaneously
 %             recData = ones(size(recTimes));
             
-            eventPkts = (cellfun(@(s)s.pkt, desEvents,'uni',0)); % extract also the packets, to distinguish between MED events and own REC events
-            eventPktsDsts = cell2mat(cellfun(@(s)s.dst, eventPkts, 'uni', 0));
+            eventPkts = [desEvents.pkt]; % extract also the packets, to distinguish between MED events and own REC events
+            eventPktsDsts = [eventPkts.dst];
             
             % REC events of packets destined to the device 'station'
             ourPktsEvesStartTimes = round(10^6*(eventsTimes(eventPktsDsts == station & eventData == 2))); % only packets for us, REC_START enum = 2           

@@ -1,4 +1,4 @@
-function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, distFactor, dataRate, STType)
+function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, distFactor, dataRate, resultsPath)
     %testing function, simulates a network with the given paraeters
     %   for now, numDevs can be 2 or 4 
     
@@ -68,23 +68,17 @@ function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, d
     % now, run the simulator and then print the results
     [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simulationParams);
 
-    disp(output);
-    collDataBytesCtr = 0;
-    collCtrlBytesCtr = 0;
-    for p=1:numDevs
-        disp(['Link Number ', int2str(p)]);
-        disp(output.linksRes{p});
-        collDataBytesCtr = collDataBytesCtr + output.linksRes{p}.dataCollCtr;
-        collCtrlBytesCtr = collCtrlBytesCtr + output.linksRes{p}.ctrlCollCtr;
-    end
-    disp(['Total Number of Collided Data KBytes: ', int2str(collDataBytesCtr/10^3)]);
-    disp(['Total Number of Collided Control KBytes: ', int2str(collCtrlBytesCtr/10^3)]);
+    disp('sim ended!');
+    
+    saveResults(output, numDevs, resultsPath);
            
     % for plotting timelines and saving them to files in the folder
     % 'ResultsGraphs'
     if(wantPlot == 1)
         for s=1:numDevs
-            plotAllTimelinesForDev(s, output.eventsDS, simulationParams.finishTime, phyNetParams.numDevs, 10*distFactor, STType);
+            devResPath = [resultsPath, '\Device_', int2str(s)];
+            mkdir(devResPath);
+            plotAllTimelinesForDev(s, output.eventsDS, simulationParams.finishTime, phyNetParams.numDevs, devResPath);
         end
     end
 

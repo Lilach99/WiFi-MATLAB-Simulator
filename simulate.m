@@ -10,47 +10,78 @@ import mlreportgen.dom.*;
 %[output]=simulateNet(9, 30, 2, 0, 0, 10);
 simTime = 5;
 numDevs = 4;
+numDists = 3;
 linkLens = [10, 20, 30];%, 40, 50, 60, 70, 80, 90, 100]; % in kms!
-% for example, we will always display the metrics of link 1:
-link1InfoStandardST = cell(3, 1);
-link1InfoAPDST = cell(3, 1);
 
-link2InfoStandardST = cell(3, 1);
-link2InfoAPDST = cell(3, 1);
+% DSs for future display of the metrics of the links:
+link1InfoStandardST = cell(numDists, 1);
+link1InfoAPDST = cell(numDists, 1);
+link2InfoStandardST = cell(numDists, 1);
+link2InfoAPDST = cell(numDists, 1);
+link3InfoStandardST = cell(numDists, 1);
+link3InfoAPDST = cell(numDists, 1);
+link4InfoStandardST = cell(numDists, 1);
+link4InfoAPDST = cell(numDists, 1);
+% make directories to save the results:
+t = datetime('now');
+t = datestr(t);
+t = strrep(t,':','-');
+experimentResultsPath = ['Results\Experiment_', int2str(numDevs/2), '_pTp_Links_', int2str(simTime), '_secondes_simulation_', t];
+mkdir(experimentResultsPath); % for this experiment
+standardSTPath = [experimentResultsPath, '\Standard_ST'];
+mkdir(standardSTPath); % standard ST
+APDSTPath = [experimentResultsPath, '\2APD_ST'];
+mkdir(APDSTPath); % 2APD ST
+% output arrays
+outputStandard = cell(numDists, 1);
+output2APD = cell(numDists, 1);
 
-link3InfoStandardST = cell(3, 1);
-link3InfoAPDST = cell(3, 1);
-
-link4InfoStandardST = cell(3, 1);
-link4InfoAPDST = cell(3, 1);
-
- for h=1:3
+for h=1:numDists
 %tic
-%parfor h=1:10
+%parfor h=1:numDists
   dists = getLinksLenfor4Devs(h); % in KMs
   %dists = h*[0, 10; 10, 0];
   %dists = getLinksLenfor6Devs(h); % in KMs
   ST = 10^-5+calcSTfromNetAPD(dists, 2);
   disp(['Length of tested link: ', int2str(10*h)]);
-  
-  output = simulateNet(9*10^-6, simTime, numDevs, 0, 1, h, 1, 'Standard'); % the last parameter is dataRate in Mbps!
-  link1InfoStandardST{h} = output.linksRes{1};
-  link2InfoStandardST{h} = output.linksRes{2};
-  link3InfoStandardST{h} = output.linksRes{3};
-  link4InfoStandardST{h} = output.linksRes{4};
+  disp('Standard');
+  % Standard ST experiment
+  resPath = [standardSTPath, '\Length_', int2str(10*h)];
+  mkdir(resPath);
+  outputStandard{h} = simulateNet(9*10^-6, simTime, numDevs, 0, 1, h, 1, resPath); % the last parameter is dataRate in Mbps!
+  link1InfoStandardST{h} = outputStandard{h}.linksRes{1};
+  link2InfoStandardST{h} = outputStandard{h}.linksRes{2};
+  link3InfoStandardST{h} = outputStandard{h}.linksRes{3};
+  link4InfoStandardST{h} = outputStandard{h}.linksRes{4};
 
-  output = simulateNet(ST, simTime, numDevs, 0, 1, h, 1, '2APD');
-  link1InfoAPDST{h} = output.linksRes{1};
-  link2InfoAPDST{h} = output.linksRes{2};
-  link3InfoAPDST{h} = output.linksRes{3};
-  link4InfoAPDST{h} = output.linksRes{4};
+  disp('2APD');
+  resPath = [APDSTPath, '\Length_', int2str(10*h)];
+  mkdir(resPath);
+  output2APD{h} = simulateNet(ST, simTime, numDevs, 0, 1, h, 1, resPath);
+  link1InfoAPDST{h} = output2APD{h}.linksRes{1};
+  link2InfoAPDST{h} = output2APD{h}.linksRes{2};
+  link3InfoAPDST{h} = output2APD{h}.linksRes{3};
+  link4InfoAPDST{h} = output2APD{h}.linksRes{4};
   
 end
-
-plotLinkMetrics(link1InfoStandardST, link1InfoAPDST, linkLens, simTime, 1);
-plotLinkMetrics(link2InfoStandardST, link2InfoAPDST, linkLens, simTime, 2);
-plotLinkMetrics(link3InfoStandardST, link3InfoAPDST, linkLens, simTime, 3);
-plotLinkMetrics(link4InfoStandardST, link4InfoAPDST, linkLens, simTime, 4);
-
-
 %toc
+
+linkInfoStandardST(1) = link1InfoStandardST;
+linkInfoStandardST(2) = link2InfoStandardST;
+linkInfoStandardST(3) = link3InfoStandardST;
+linkInfoStandardST(4) = link4InfoStandardST;
+
+linkInfoAPDST(1) = link1InfoAPDST;
+linkInfoAPDST(2) = link2InfoAPDST;
+linkInfoAPDST(3) = link3InfoAPDST;
+linkInfoAPDST(4) = link4InfoAPDST;
+ 
+%tic
+for h=1:numDevs
+    resultsPath = [experimentResultsPath, '\Link_', int2str(h)];
+    plotLinkMetrics(linkInfoStandardST(h), linkInfoAPDST(h), linkLens, simTime, resultsPath);
+end
+%toc
+
+save([experimentResultsPath, '\output.mat']);
+

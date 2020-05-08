@@ -50,7 +50,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     packetsDS = {}; % packets documentation DS
     collCnt = 0; % collisions counter
     linksDS = initialLinksDS(numLinks, linksInfo);
-    eventsDS = cell(1, 1000); % useful in Debug mode, events documentation DS, maybe it's better not to pre-allocate...    
+    eventsDS = simEventsList; % just init, useful in Debug mode, events documentation DS, maybe it's better not to pre-allocate...    
     eventsCnt = 1;
     
     % run this loop until the simulation time ends or both of the stations
@@ -87,7 +87,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                 % add the simEvent to the events documentation DS if the system
                 % is in Debug mode
                 
-                eventsDS{eventsCnt} = simEvent;
+                eventsDS(eventsCnt) = simEvent;
                 eventsCnt = eventsCnt + 1;
                 
                 
