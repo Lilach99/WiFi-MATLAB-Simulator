@@ -6,14 +6,14 @@ function [] = plotAllTimelinesForDev(dev, events, simTime, totalNumDevs, results
     % first, TRAN events:
     tranEvents = extractEvents(dev, eventType.TRAN, events);
     plotEventsTimeLine(dev, eventType.TRAN, tranEvents, simTime, totalNumDevs);
-    saveas(figure(1), strcat(resultsPath, '\Transmission_Intervals'), 'fig');
+    savefig([resultsPath, '\Transmission_Intervals.fig']);
     hold off
 
     figure(2)
     % second, REC events:
     recEvents = extractEvents(dev, eventType.REC, events);
     plotEventsTimeLine(dev, eventType.REC, recEvents, simTime, totalNumDevs);
-    saveas(figure(2), strcat(resultsPath, '\Reception_Intervals'), 'fig');
+    savefig([resultsPath, '\Reception_Intervals.fig']);
     hold off
 
 end

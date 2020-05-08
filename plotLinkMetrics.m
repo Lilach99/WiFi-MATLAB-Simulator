@@ -49,7 +49,7 @@ function [] = plotLinkMetrics(linkInfoStandardST, linkInfoAPDST, linkLens, simTi
     hold on
     scatter(linkLens, linkAPDGoodpts,  '.', 'r');
     legend({'Standard SlotTime','APD-based SlotTime'},'Location','southwest');
-    saveas(figure(1), strcat(resultsPath, '\Goodput_and_Throughput'), 'fig');
+    savefig([resultsPath, '\Goodput_and_Throughput.fig']);
     hold off
         
     figure(2)   
@@ -61,7 +61,7 @@ function [] = plotLinkMetrics(linkInfoStandardST, linkInfoAPDST, linkLens, simTi
     hold on
     scatter(linkLens, linkAPDCollPer,  '.', 'r');
     legend({'Standard SlotTime','APD-based SlotTime'},'Location','southwest');
-    saveas(figure(2), strcat(resultsPath,'\Collided_Bytes_Percentage'), 'fig');
+    savefig([resultsPath, '\Collided_Bytes_Percentage.fig']);
     hold off
     
 end

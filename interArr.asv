@@ -8,13 +8,13 @@ function [interArrTime] = interArr(pkt, linkInfo)
         % in this case, we should enter some randomness to the link so we
         % add/subtract between 0%-20% from the interArrTime we got
         r = rand;
-        per = (rand/5)*interArrTime; % take a part from interArrTime, between 0%-20%
         if(r > 0.5)
             % add
-            interArrTime = interArrTime + per;
+            per = 
+            interArrTime = interArrTime + 20*rand;
         else
             % subtruct
-            interArrTime = interArrTime - per;
+            interArrTime = interArrTime - 20*rand;
         end
     end
     
