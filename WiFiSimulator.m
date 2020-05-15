@@ -50,7 +50,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     packetsDS = {}; % packets documentation DS
     collCnt = 0; % collisions counter
     linksDS = initialLinksDS(numLinks, linksInfo);
-    eventsDS = simEventsList; % just init, useful in Debug mode, events documentation DS, maybe it's better not to pre-allocate...    
+    eventsDS = cell(1, 1000); % just init, useful in Debug mode, events documentation DS, maybe it's better not to pre-allocate...    
     eventsCnt = 1;
     
     % run this loop until the simulation time ends or both of the stations
@@ -87,7 +87,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                 % add the simEvent to the events documentation DS if the system
                 % is in Debug mode
                 
-                eventsDS(eventsCnt) = simEvent;
+                eventsDS{eventsCnt} = simEvent;
                 eventsCnt = eventsCnt + 1;
                 
                 
@@ -133,7 +133,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % so, in the 'station' field of the GEN_PACK event,
                         % there will be the link index in the array instead
                         % of a single station's ID.
-                        pktLength = randi([linksInfo{curStation}.minPS, linksInfo{curStation}.maxPS]); % randomize the packet size
+                        pktLength = getPacketLength(linksInfo{curStation});%randi([linksInfo{curStation}.minPS, linksInfo{curStation}.maxPS]); % randomize the packet size
                         pkt = generatePacket(curStation, linksInfo{curStation}, pktLength , curTime, linksInfo{curStation}.src, linksInfo{curStation}.dst);
                         % update the device that it has a packet to send
                         linksDS{curStation}.generatedPktCnt = linksDS{curStation}.generatedPktCnt + 1;

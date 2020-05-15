@@ -9,12 +9,12 @@ function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, d
             dev1P = createDevParams(1, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc); % SIFS and SlotTime are in microseconds
             dev2P = createDevParams(2, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
 
-            link1 = createlinkInfo(1, 2, 6, dataRate, 1460, 1460, 0); % rates - in Mbps!! PHY rate and then APP (DATA) rate
-            link2 = createlinkInfo(2, 1, 6, dataRate,  1460, 1460, 0);
+            link1 = createlinkInfo(1, 2, 6, dataRate, 100, 2000, 0, pktPolicy.RAND); % rates - in Mbps!! PHY rate and then APP (DATA) rate
+            link2 = createlinkInfo(2, 1, 6, dataRate,  100, 2000, 0, pktPolicy.RAND);
 
             devsParams = {dev1P, dev2P};
             phyNetParams.numDevs = numDevs;
-            phyNetParams.linksLens = distFactor*[0, 10; 10, 0]; % in KMs
+            phyNetParams.linksLens = distFactor*(10e-4)*[0, 10; 10, 0]; % in KMs
             logNetParams.linksInfo = {link1, link2};
             simulationParams.finishTime = simTime; % in seconds
             simulationParams.debugMode = debMode;
@@ -26,10 +26,10 @@ function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, d
             dev3P = createDevParams(3, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc); 
             dev4P = createDevParams(4, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
 
-            link1 = createlinkInfo(1, 2, 6, dataRate, 100, 2000, 0); % rates - in Mbps!! PHY rate and then APP (DATA) rate
-            link2 = createlinkInfo(2, 1, 6, dataRate, 100, 2000, 0);
-            link3 = createlinkInfo(3, 4, 6, dataRate,  100, 2000, 0);
-            link4 = createlinkInfo(4, 3, 6, dataRate,  100, 2000, 0);
+            link1 = createlinkInfo(1, 2, 6, dataRate, 100, 2000, 0, pktPolicy.RAND); % rates - in Mbps!! PHY rate and then APP (DATA) rate
+            link2 = createlinkInfo(2, 1, 6, dataRate, 100, 2000, 0, pktPolicy.RAND);
+            link3 = createlinkInfo(3, 4, 6, dataRate,  100, 2000, 0, pktPolicy.RAND);
+            link4 = createlinkInfo(4, 3, 6, dataRate,  100, 2000, 0, pktPolicy.RAND);
 
             devsParams = {dev1P, dev2P, dev3P, dev4P};
             phyNetParams.numDevs = numDevs;
@@ -47,12 +47,12 @@ function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, d
             dev5P = createDevParams(5, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
             dev6P = createDevParams(6, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
 
-            link1 = createlinkInfo(1, 2, 6, dataRate, 100, 2000, 0); % rates - in Mbps!! PHY rate and then APP (DATA) rate
-            link2 = createlinkInfo(2, 1, 6, dataRate, 100, 2000, 0);
-            link3 = createlinkInfo(3, 4, 6, dataRate,  100, 2000, 0);
-            link4 = createlinkInfo(4, 3, 6, dataRate,  100, 2000, 0);
-            link5 = createlinkInfo(5, 6, 6, dataRate,  100, 2000, 0);
-            link6 = createlinkInfo(6, 5, 6, dataRate,  100, 2000, 0);
+            link1 = createlinkInfo(1, 2, 6, dataRate, 100, 2000, 0, pktPolicy.CBR); % rates - in Mbps!! PHY rate and then APP (DATA) rate
+            link2 = createlinkInfo(2, 1, 6, dataRate, 100, 2000, 0, pktPolicy.CBR);
+            link3 = createlinkInfo(3, 4, 6, dataRate,  100, 2000, 0, pktPolicy.CBR);
+            link4 = createlinkInfo(4, 3, 6, dataRate,  100, 2000, 0, pktPolicy.CBR);
+            link5 = createlinkInfo(5, 6, 6, dataRate,  100, 2000, 0, pktPolicy.CBR);
+            link6 = createlinkInfo(6, 5, 6, dataRate,  100, 2000, 0, pktPolicy.CBR);
 
             devsParams = {dev1P, dev2P, dev3P, dev4P, dev5P, dev6P};
             phyNetParams.numDevs = numDevs;
