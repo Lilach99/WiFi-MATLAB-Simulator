@@ -26,7 +26,7 @@ link4InfoAPDST = cell(numDists, 1);
 t = datetime('now');
 t = datestr(t);
 t = strrep(t,':','-');
-experimentResultsPath = ['Results\Experiment_METERS_', int2str(numDevs/2), '_pTp_Links_', int2str(simTime), '_secondes_simulation_', t];
+experimentResultsPath = ['Results\Experiment_', int2str(numDevs/2), '_pTp_Links_', int2str(simTime), '_secondes_simulation_', t];
 mkdir(experimentResultsPath); % for this experiment
 standardSTPath = [experimentResultsPath, '\Standard_ST'];
 mkdir(standardSTPath); % standard ST
@@ -39,8 +39,8 @@ output2APD = cell(numDists, 1);
 for h=1:numDists
 %tic
 %parfor h=1:numDists
-  dists = getLinksLenfor4Devs(h); % in KMs
-  %dists = (10e-4)*h*[0, 10; 10, 0]; % now it will be 10, 20, 30, ... METERS!
+  %dists = getLinksLenfor4Devs(h); % in KMs
+  dists = h*[0, 10; 10, 0]; 
   %dists = getLinksLenfor6Devs(h); % in KMs
   ST = 10^-5+calcSTfromNetAPD(dists, 2);
   disp(['Length of tested link: ', int2str(10*h)]);

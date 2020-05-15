@@ -4,7 +4,7 @@ function [linkLens] = getLinksLenfor4Devs(h)
 %diagonal distance ("Pitagoras") between 3 to 2 and 4 to 1
 
 % KMs
-diag = sqrt((20^2+(10*h)^2);
+diag = sqrt((20^2+(10*h)^2));
 linkLens = [0, 10*h, 20, diag; 10*h, 0, diag, 20; 20, diag, 0, 10*h; diag, 20, 10*h, 0];
 
 % % Ms

@@ -9,12 +9,12 @@ function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, d
             dev1P = createDevParams(1, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc); % SIFS and SlotTime are in microseconds
             dev2P = createDevParams(2, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
 
-            link1 = createlinkInfo(1, 2, 6, dataRate, 100, 2000, 0, pktPolicy.RAND); % rates - in Mbps!! PHY rate and then APP (DATA) rate
-            link2 = createlinkInfo(2, 1, 6, dataRate,  100, 2000, 0, pktPolicy.RAND);
+            link1 = createlinkInfo(1, 2, 6, dataRate, 100, 2000, 0, pktPolicy.CBR); % rates - in Mbps!! PHY rate and then APP (DATA) rate
+            link2 = createlinkInfo(2, 1, 6, dataRate,  100, 2000, 0, pktPolicy.CBR);
 
             devsParams = {dev1P, dev2P};
             phyNetParams.numDevs = numDevs;
-            phyNetParams.linksLens = distFactor*(10e-4)*[0, 10; 10, 0]; % in KMs
+            phyNetParams.linksLens = distFactor*[0, 10; 10, 0]; % in KMs
             logNetParams.linksInfo = {link1, link2};
             simulationParams.finishTime = simTime; % in seconds
             simulationParams.debugMode = debMode;
@@ -70,7 +70,7 @@ function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, d
 
     disp('sim ended!');
     
-    saveResults(output, numDevs, resultsPath);
+    %saveResults(output, numDevs, resultsPath);
            
     % for plotting timelines and saving them to files in the folder
     % 'ResultsGraphs'
