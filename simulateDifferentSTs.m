@@ -108,11 +108,14 @@ linkInfoHalfAPDST{2} = link2InfoHalfAPDST;
 linkInfoQrtAPDST{1} = link1InfoQrtAPDST;
 linkInfoQrtAPDST{2} = link2InfoQrtAPDST;
  
+setUpTitle = [int2str(numDevs), ' point to point link, 1460B packets, ', int2str(simTime), ' seconds simulation'];
+[linkThpts, linkGoodpts, linkCollPer] = calcLinkMetricsDifferentSTs(linkInfoStandardST{h}, linkInfo3APDST{h}, linkInfo2APDST{h}, linkInfoAPDST{h}, linkInfoHalfAPDST{h}, linkInfoQrtAPDST{h}, simTime);
+
 %tic
 for h=1:numDevs
     resultsPath = [experimentResultsPath, '\Link_', int2str(h)];
     mkdir(resultsPath);
-    plotLinkMetricsForDifferentSTs(linkInfoStandardST{h}, linkInfo3APDST{h}, linkInfo2APDST{h}, linkInfoAPDST{h}, linkInfoHalfAPDST{h}, linkInfoQrtAPDST{h}, linkLens, simTime, resultsPath);
+    plotLinkMetricsForDifferentSTs(linkThpts, linkGoodpts, linkCollPer, linkLens, simTime, resultsPath, setUpTitle);
 end
 %toc
 

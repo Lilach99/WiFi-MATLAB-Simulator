@@ -1,8 +1,5 @@
-function [] = plotLinkMetricsForDifferentSTs(linkThpts, linkGoodpts, linkCollPer, linkLens, resultsPath, setUpTitle)
-    %gets a DS of linkInfo structs of a specific link, in different lengths, 
-    %and plots some comerative graphs between the standard ST and APD-based
-    %STs - total of 6 different values
-  
+function [] = plotLinkMetricsForDifferentSTsAvg(linkThpts, linkGoodpts, linkCollPer, linkLens, resultsPath, setUpTitle, dataRate)
+    %plots the avg scatter of the results
     figure(1)
     
     colors = {'g', 'r', 'b', 'm', 'y', 'k'};
@@ -14,8 +11,9 @@ function [] = plotLinkMetricsForDifferentSTs(linkThpts, linkGoodpts, linkCollPer
         hold on
     end
     xlabel('Link length (km)');
-    ylabel('Link Throughput (Mbps)');
-    title({'Link Throughputs (including overhead)', 'Standard SlotTime VS various APD-based SlotTime values', setUpTitle});    
+    ylabel('Average Link Throughput (Mbps)');
+    ylim([0 2*dataRate]);
+    title({'Average Link Throughputs (including overhead)', 'Standard SlotTime VS various APD-based SlotTime values', setUpTitle});    
     legend({'Standard SlotTime', '2APD SlotTime', '3APD SlotTime', 'APD SlotTime', '0.5APD SlotTime', '0.25APD SlotTime'}, 'Location','southwest');
     hold off
     
@@ -25,11 +23,12 @@ function [] = plotLinkMetricsForDifferentSTs(linkThpts, linkGoodpts, linkCollPer
         scatter(linkLens, linkGoodpts(j, :), '.', colors{j});
         hold on
     end
-    title({'Link Goodputs (only successfully received data)', 'Standard SlotTime VS APD-based SlotTime', setUpTitle});
+    title({'Average Link Goodputs (only successfully received data)', 'Standard SlotTime VS APD-based SlotTime', setUpTitle});
     xlabel('Link length (km)');
-    ylabel('Link Goodput (Mbps)');
+    ylabel('Average Link Goodput (Mbps)');
+    ylim([0 2*dataRate]);
     legend({'Standard SlotTime', '2APD SlotTime', '3APD SlotTime', 'APD SlotTime', '0.5APD SlotTime', '0.25APD SlotTime'}, 'Location','southwest');
-    savefig([resultsPath, '\Goodput_and_Throughput.fig']);
+    savefig([resultsPath, '\Goodput_and_Throughput_AVG.fig']);
     hold off
         
     figure(2)   
@@ -38,11 +37,11 @@ function [] = plotLinkMetricsForDifferentSTs(linkThpts, linkGoodpts, linkCollPer
         scatter(linkLens, linkCollPer(j, :), '.', colors{j});
         hold on
     end
-    title({'Percentage of collided data bytes (%)', setUpTitle});
+    title({'Average Percentage of collided data bytes (%)', setUpTitle});
     xlabel('Link length (km)');
-    ylabel('Percentage of collided data bytes (%)');
+    ylabel('Average Percentage of collided data bytes (%)');
     legend({'Standard SlotTime', '2APD SlotTime', '3APD SlotTime', 'APD SlotTime', '0.5APD SlotTime', '0.25APD SlotTime'}, 'Location','southwest');
-    savefig([resultsPath, '\Collided_Bytes_Percentage.fig']);
+    savefig([resultsPath, '\Collided_Bytes_Percentage_AVG.fig']);
     hold off
     
 end
