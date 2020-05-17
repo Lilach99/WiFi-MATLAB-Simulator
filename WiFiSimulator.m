@@ -50,7 +50,9 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     packetsDS = {}; % packets documentation DS
     collCnt = 0; % collisions counter
     linksDS = initialLinksDS(numLinks, linksInfo);
-    eventsDS = cell(1, 1000); % just init, useful in Debug mode, events documentation DS, maybe it's better not to pre-allocate...    
+    if(debMode == 1)
+        eventsDS = cell(1, 1000); % just init, useful in Debug mode, events documentation DS, maybe it's better not to pre-allocate...    
+    end
     eventsCnt = 1;
     
     % run this loop until the simulation time ends or both of the stations
@@ -86,8 +88,9 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                 end
                 % add the simEvent to the events documentation DS if the system
                 % is in Debug mode
-                
-                eventsDS{eventsCnt} = simEvent;
+                if(debMode ==1)
+                    eventsDS{eventsCnt} = simEvent;
+                end
                 eventsCnt = eventsCnt + 1;
                 
                 
@@ -122,9 +125,9 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         output.collCnt = collCnt;
                         output.finTime = curTime;
                         output.linksRes = linksDS;
-                        
-                        output.eventsDS = eventsDS;
-                       
+                        if(debMode == 1)
+                            output.eventsDS = eventsDS;
+                        end
                         
                     case simEventType.GEN_PACK
                         % happens per link, triggers a 'NEW_PACKET'
@@ -330,6 +333,8 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
         output.collCnt = collCnt;
         output.finTime = finTime;
         output.linksRes = linksDS;
-        output.eventsDS = eventsDS;
+        if(debMode == 1)
+            output.eventsDS = eventsDS;
+        end
     end
 end

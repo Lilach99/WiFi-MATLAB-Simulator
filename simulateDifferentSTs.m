@@ -1,9 +1,9 @@
 import mlreportgen.dom.*;
 
-% p = gcp('nocreate');
-% if (isempty(p))
-%     parpool(4);
-% end
+p = gcp('nocreate');
+if (isempty(p))
+    parpool(4);
+end
 
 % tests: 
 
@@ -11,6 +11,7 @@ import mlreportgen.dom.*;
 simTime = 5;
 numDevs = 2;
 numDists = 10;
+numSTVals = 6;
 linkLens = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]; % in kms!
 
 % DSs for future display of the metrics of the links:
@@ -31,7 +32,8 @@ link2InfoQrtAPDST = cell(numDists, 1);
 t = datetime('now');
 t = datestr(t);
 t = strrep(t,':','-');
-experimentResultsPath = ['Results\Experiment_Various_ST_Values_', int2str(numDevs/2), '_pTp_Links_', int2str(simTime), '_secondes_simulation_', t];
+
+experimentResultsPath = ['Results\Experiment_Various_ST_Values_', pktPol, '_', int2str(dataRate), '_Mbps_data_rate_', int2str(numSims), '_Simulations_', int2str(numDevs/2), '_pTp_Links_', int2str(simTime), '_secondes_simulation_', t];
 mkdir(experimentResultsPath); % for this experiment
 % standardSTPath = [experimentResultsPath, '\Standard_ST'];
 % mkdir(standardSTPath); % standard ST
@@ -45,9 +47,9 @@ outputAPD = cell(numDists, 1);
 outputHalfAPD = cell(numDists, 1);
 outputQrtAPD = cell(numDists, 1);
 
-for h=1:numDists
-%tic
-%parfor h=1:numDists
+%for h=1:numDists
+tic
+parfor h=1:numDists
   %dists = getLinksLenfor4Devs(h); % in KMs
   dists = h*[0, 10; 10, 0]; 
   %dists = getLinksLenfor6Devs(h); % in KMs
@@ -58,37 +60,37 @@ for h=1:numDists
   % Standard ST experiment
   resPath = 'lala'; % not used, dummy!
   %mkdir(resPath);
-  outputStandard{h} = simulateNet(9*10^-6, simTime, numDevs, 0, 0, h, 1, resPath); % the last parameter is dataRate in Mbps!
+  outputStandard{h} = simulateNet(9*10^-6, simTime, numDevs, 0, 0, h, 1,  pktPolicy.CBR, resPath); % the last parameter is dataRate in Mbps!
   link1InfoStandardST{h} = outputStandard{h}.linksRes{1};
   link2InfoStandardST{h} = outputStandard{h}.linksRes{2};
 
   disp('2APD');
-  output2APD{h} = simulateNet(2*ST, simTime, numDevs, 0, 0, h, 1, resPath);
+  output2APD{h} = simulateNet(2*ST, simTime, numDevs, 0, 0, h, 1, pktPolicy.CBR, resPath);
   link1Info2APDST{h} = output2APD{h}.linksRes{1};
   link2Info2APDST{h} = output2APD{h}.linksRes{2};
 
   disp('3APD');
-  output3APD{h} = simulateNet(3*ST, simTime, numDevs, 0, 0, h, 1, resPath);
+  output3APD{h} = simulateNet(3*ST, simTime, numDevs, 0, 0, h, 1, pktPolicy.CBR, resPath);
   link1Info3APDST{h} = output3APD{h}.linksRes{1};
   link2Info3APDST{h} = output3APD{h}.linksRes{2};
   
   disp('APD');
-  outputAPD{h} = simulateNet(ST, simTime, numDevs, 0, 0, h, 1, resPath);
+  outputAPD{h} = simulateNet(ST, simTime, numDevs, 0, 0, h, 1, pktPolicy.CBR, resPath);
   link1InfoAPDST{h} = outputAPD{h}.linksRes{1};
   link2InfoAPDST{h} = outputAPD{h}.linksRes{2};
   
   disp('0.5APD');
-  outputHalfAPD{h} = simulateNet(0.5*ST, simTime, numDevs, 0, 0, h, 1, resPath);
+  outputHalfAPD{h} = simulateNet(0.5*ST, simTime, numDevs, 0, 0, h, 1, pktPolicy.CBR, resPath);
   link1InfoHalfAPDST{h} = outputHalfAPD{h}.linksRes{1};
   link2InfoHalfAPDST{h} = outputHalfAPD{h}.linksRes{2};
   
   disp('0.25APD');
-  outputQrtAPD{h} = simulateNet(0.25*ST, simTime, numDevs, 0, 0, h, 1, resPath);
+  outputQrtAPD{h} = simulateNet(0.25*ST, simTime, numDevs, 0, 0, h, 1, pktPolicy.CBR, resPath);
   link1InfoQrtAPDST{h} = outputQrtAPD{h}.linksRes{1};
   link2InfoQrtAPDST{h} = outputQrtAPD{h}.linksRes{2};
   
 end
-%toc
+toc
 
 linkInfoStandardST{1} = link1InfoStandardST;
 linkInfoStandardST{2} = link2InfoStandardST;
@@ -109,16 +111,17 @@ linkInfoQrtAPDST{1} = link1InfoQrtAPDST;
 linkInfoQrtAPDST{2} = link2InfoQrtAPDST;
  
 setUpTitle = [int2str(numDevs), ' point to point link, 1460B packets, ', int2str(simTime), ' seconds simulation'];
-[linkThpts, linkGoodpts, linkCollPer] = calcLinkMetricsDifferentSTs(linkInfoStandardST{h}, linkInfo3APDST{h}, linkInfo2APDST{h}, linkInfoAPDST{h}, linkInfoHalfAPDST{h}, linkInfoQrtAPDST{h}, simTime);
+
 
 %tic
-for h=1:numDevs
-    resultsPath = [experimentResultsPath, '\Link_', int2str(h)];
+for k=1:numDevs
+    resultsPath = [experimentResultsPath, '\Link_', int2str(k)];
     mkdir(resultsPath);
-    plotLinkMetricsForDifferentSTs(linkThpts, linkGoodpts, linkCollPer, linkLens, simTime, resultsPath, setUpTitle);
+    [linkThpts, linkGoodpts, linkCollPer] = calcLinkMetricsDifferentSTs(linkInfoStandardST{k}, linkInfo3APDST{k}, linkInfo2APDST{k}, linkInfoAPDST{k}, linkInfoHalfAPDST{k}, linkInfoQrtAPDST{k}, simTime, numSTVals, numDists);
+    plotLinkMetricsForDifferentSTs(linkThpts, linkGoodpts, linkCollPer, linkLens, resultsPath, setUpTitle);
 end
 %toc
 
-save([experimentResultsPath, '\output.mat']);
+save([experimentResultsPath, '\output_', t, '.mat']);
 
 

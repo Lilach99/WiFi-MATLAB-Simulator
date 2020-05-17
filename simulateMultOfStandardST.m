@@ -1,11 +1,6 @@
-function [] = simulateDifferentSTsBunchInDataRate(dataRate, packetsPolicy, linkLens)
-    %runs a bunch of simulations with the given data rate
-% 
-%     p = gcp('nocreate');
-%     if (isempty(p))
-%         parpool(4);
-%     end
-
+function [] = simulateMultOfStandardST(dataRate, packetsPolicy, linkLens, STFactor)
+    %simulates a link which uses STFactor*StandardST SlotTime
+    
     simTime = 5; % in seconds
     numSims = 1; % number of simulations we run and average
     numDevs = 2;
@@ -34,64 +29,34 @@ function [] = simulateDifferentSTsBunchInDataRate(dataRate, packetsPolicy, linkL
         link2InfoStandardST = cell(numDists, 1);
         link1Info2APDST = cell(numDists, 1);
         link2Info2APDST = cell(numDists, 1);
-        link1Info3APDST = cell(numDists, 1);
-        link2Info3APDST = cell(numDists, 1);
-        link1InfoAPDST = cell(numDists, 1);
-        link2InfoAPDST = cell(numDists, 1);
-        link1InfoHalfAPDST = cell(numDists, 1);
-        link2InfoHalfAPDST = cell(numDists, 1);
-        link1InfoQrtAPDST = cell(numDists, 1);
-        link2InfoQrtAPDST = cell(numDists, 1);
         
-         % output arrays
+        % output arrays
         outputStandard = cell(numDists, 1);
         output2APD = cell(numDists, 1);
-        output3APD = cell(numDists, 1);
-        outputAPD = cell(numDists, 1);
-        outputHalfAPD = cell(numDists, 1);
-        outputQrtAPD = cell(numDists, 1);
-        
-        %for h=1:numDists
+
         tic
-        parfor h=1:numDists
+        for h=1:numDists
+        %parfor h=1:numDists
           %dists = getLinksLenfor4Devs(h); % in KMs
           dists = linkLens(h)*[0, 1; 1, 0]; 
           %dists = getLinksLenfor6Devs(h); % in KMs
-          ST = 10^-5+calcSTfromNetAPD(dists, 1); % 1 APD !
+          standardST = 9*10^-6; % standard
+          APDST = 10^-5+calcSTfromNetAPD(dists, 1); % 1 APD !
+
           disp(['Length of tested link: ', int2str(linkLens(h))]);
 
           disp('Standard');
           % Standard ST experiment
           resPath = 'lala'; % not used, dummy!
           %mkdir(resPath);
-          outputStandard{h} = simulateNet(9*10^-6, simTime, numDevs, 0, 0, linkLens(h), dataRate, packetsPolicy, resPath); % the last parameter is dataRate in Mbps!
+          outputStandard{h} = simulateNet(standardST*STFactor, simTime, numDevs, 0, 0, linkLens(h), dataRate, packetsPolicy, resPath); % the last parameter is dataRate in Mbps!
           link1InfoStandardST{h} = outputStandard{h}.linksRes{1};
           link2InfoStandardST{h} = outputStandard{h}.linksRes{2};
 
           disp('2APD');
-          output2APD{h} = simulateNet(2*ST, simTime, numDevs, 0, 0, linkLens(h), dataRate, packetsPolicy, resPath);
+          output2APD{h} = simulateNet(2*APDST, simTime, numDevs, 0, 0, linkLens(h), dataRate, packetsPolicy, resPath);
           link1Info2APDST{h} = output2APD{h}.linksRes{1};
           link2Info2APDST{h} = output2APD{h}.linksRes{2};
-
-          disp('3APD');
-          output3APD{h} = simulateNet(3*ST, simTime, numDevs, 0, 0, linkLens(h), dataRate, packetsPolicy, resPath);
-          link1Info3APDST{h} = output3APD{h}.linksRes{1};
-          link2Info3APDST{h} = output3APD{h}.linksRes{2};
-
-          disp('APD');
-          outputAPD{h} = simulateNet(ST, simTime, numDevs, 0, 0, linkLens(h), dataRate, packetsPolicy, resPath);
-          link1InfoAPDST{h} = outputAPD{h}.linksRes{1};
-          link2InfoAPDST{h} = outputAPD{h}.linksRes{2};
-
-          disp('0.5APD');
-          outputHalfAPD{h} = simulateNet(0.5*ST, simTime, numDevs, 0, 0, linkLens(h), dataRate, packetsPolicy, resPath);
-          link1InfoHalfAPDST{h} = outputHalfAPD{h}.linksRes{1};
-          link2InfoHalfAPDST{h} = outputHalfAPD{h}.linksRes{2};
-
-          disp('0.25APD');
-          outputQrtAPD{h} = simulateNet(0.25*ST, simTime, numDevs, 0, 0, linkLens(h), dataRate, packetsPolicy, resPath);
-          link1InfoQrtAPDST{h} = outputQrtAPD{h}.linksRes{1};
-          link2InfoQrtAPDST{h} = outputQrtAPD{h}.linksRes{2};
 
         end
 
@@ -100,18 +65,6 @@ function [] = simulateDifferentSTsBunchInDataRate(dataRate, packetsPolicy, linkL
 
         linkInfo2APDST{1} = link1Info2APDST;
         linkInfo2APDST{2} = link2Info2APDST;
-
-        linkInfo3APDST{1} = link1Info3APDST;
-        linkInfo3APDST{2} = link2Info3APDST;
-
-        linkInfoAPDST{1} = link1InfoAPDST;
-        linkInfoAPDST{2} = link2InfoAPDST;
-
-        linkInfoHalfAPDST{1} = link1InfoHalfAPDST;
-        linkInfoHalfAPDST{2} = link2InfoHalfAPDST;
-
-        linkInfoQrtAPDST{1} = link1InfoQrtAPDST;
-        linkInfoQrtAPDST{2} = link2InfoQrtAPDST;
 
         % for link 1:
         [linkThpts, linkGoodpts, linkCollPer] = calcLinkMetricsDifferentSTs(linkInfoStandardST{1}, linkInfo3APDST{1}, linkInfo2APDST{1}, linkInfoAPDST{1}, linkInfoHalfAPDST{1}, linkInfoQrtAPDST{1}, simTime, numSTVals, numDists);
@@ -149,7 +102,7 @@ function [] = simulateDifferentSTsBunchInDataRate(dataRate, packetsPolicy, linkL
     %toc
 
     save([experimentResultsPath, '\output.mat']);
-
+    
 
 end
 

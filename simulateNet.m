@@ -14,7 +14,7 @@ function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, d
 
             devsParams = {dev1P, dev2P};
             phyNetParams.numDevs = numDevs;
-            phyNetParams.linksLens = distFactor*[0, 10; 10, 0]; % in KMs
+            phyNetParams.linksLens = distFactor*[0, 1; 1, 0]; % in KMs
             logNetParams.linksInfo = {link1, link2};
             simulationParams.finishTime = simTime; % in seconds
             simulationParams.debugMode = debMode;
