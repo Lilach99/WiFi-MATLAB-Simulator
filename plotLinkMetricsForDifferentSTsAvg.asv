@@ -9,7 +9,7 @@ function [] = plotLinkMetricsForDifferentSTsAvg(linkThpts, linkGoodpts, linkColl
     % plot all throughput graphs in the same figure
     for j=1:6
         scatter(linkLens, linkThpts(j, :), '.', colors{j});
-        line(linkLens, linkThpts(j, :), 'Color', colorsNames{j});
+        line(linkLens, linkThpts(j, :), '.', colorsNa{j});
         hold on
     end
     xlabel('Link length (km)');
@@ -23,7 +23,6 @@ function [] = plotLinkMetricsForDifferentSTsAvg(linkThpts, linkGoodpts, linkColl
     % plot all goodputs graphs in the same figure
     for j=1:6
         scatter(linkLens, linkGoodpts(j, :), '.', colors{j});
-        line(linkLens, linkGoodpts(j, :), 'Color', colorsNames{j});
         hold on
     end
     title({'Average Link Goodputs (only successfully received data)', 'Standard SlotTime VS APD-based SlotTime', setUpTitle});
@@ -38,7 +37,6 @@ function [] = plotLinkMetricsForDifferentSTsAvg(linkThpts, linkGoodpts, linkColl
     % plot all collided percisions graphs in the same figure
     for j=1:6
         scatter(linkLens, linkCollPer(j, :), '.', colors{j});
-        line(linkLens, linkCollPer(j, :), 'Color', colorsNames{j});
         hold on
     end
     title({'Average Percentage of collided data bytes (%)', setUpTitle});

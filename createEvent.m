@@ -15,7 +15,7 @@ function [event] = createEvent(type, time, station, opts)
     event.timerType = timerType.NONE;
     event.id = getGlobaleventInd();
     % disp(event.id);
-%     setGlobaleventInd(event.id + 1); % increase the eventInd, for the next event creation
+    setGlobaleventInd(event.id + 1); % increase the eventInd, for the next event creation
     
     if exist('opts','var')
       event.pkt = opts.pkt;

@@ -1,9 +1,4 @@
 function r = getGlobaleventInd()
-
-persistent eventInd
-if isempty(eventInd)
-    eventInd = 0;
-end
-
+coder.inline('always')
+global eventInd
 r = eventInd;
-eventInd = eventInd + 1;

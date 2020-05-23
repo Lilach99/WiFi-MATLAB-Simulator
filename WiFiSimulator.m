@@ -42,12 +42,13 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
         devStates{i} = createDevInitState(devsParams{i}, ackTO);
     end
     
-    % setGlobaleventInd(0); % initiate the global variable eventInd
+    setGlobaleventInd(0); % initiate the global variable eventInd
     % create the initial simEventType.START_SIM event for the simulation
     simEventsList = createEvent(simEventType.START_SIM, curTime, 0); % station number '0' stands for a global event, which does not relate to a specific station
         
     % output preperations:
     packetsDS = {}; % packets documentation DS
+   % packetsOutDS = initPacketsOutDS();
     collCnt = 0; % collisions counter
     linksDS = initialLinksDS(numLinks, linksInfo);
     if(debMode == 1)
@@ -121,7 +122,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                        
                     case simEventType.END_SIM
                         % make the outputs ready to be returned
-                        output.packetsDS = packetsDS; 
+                        output.packetsDS = compressPacketsDS(packetsDS); 
                         output.collCnt = collCnt;
                         output.finTime = curTime;
                         output.linksRes = linksDS;
@@ -204,6 +205,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                             % not an ACK packet
                             [packetsDS, curPkt] = insertPacketToDS(packetsDS, curRet, curPkt, curTime);
                             devStates{curStation}.curPkt = curPkt; % same packet but with the updated index in the packetsDS!
+                            %insertPacketToOutSD(packetsOutDS, curPkt, curTime);
                         end
                         if(curPkt.type == packetType.ACK)
                             % we are transmitting an ACK packet, what means
@@ -291,6 +293,11 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                             % its details in the linksInfo DS
                             desLinkInd = getLinkInfoOfPacket(curPkt, linksInfo);
                             linksDS{desLinkInd} = updateLinkDSCell(devStates{curStation}, linksDS{desLinkInd}, curPkt, simEventType.REC_END); % update meta data in the linksDS
+                            if(curPkt.type == packetType.ACK)
+                                % update packetsDS so that we will know
+                                % that the acked packet has been acked
+                                packetsDS{curPkt.packetInd}.isAcked = 1;
+                            end
                         end
                         opts = createOpts(curPkt, simEvent.timerType);
                         recEndEve = createEvent(devEventType.REC_END, curTime, curStation, opts);
@@ -329,7 +336,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
     end
     % pewpare output if we finished on time
     if(curTime > finTime)
-        output.packetsDS = packetsDS; 
+        output.packetsDS = compressPacketsDS(packetsDS); 
         output.collCnt = collCnt;
         output.finTime = finTime;
         output.linksRes = linksDS;

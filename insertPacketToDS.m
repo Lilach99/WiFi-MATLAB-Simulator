@@ -13,6 +13,7 @@ function [packetsDS, packet] = insertPacketToDS(packetsDS, curRet, packet, start
         tran.reach = -1;
         pd.trans = {};
         pd.trans{curRet+1} = tran;
+        pd.isAcked = 0;
         % create a new cell in the DS for this new packet documentation
         packetsDS{packet.ind} = pd;
     else

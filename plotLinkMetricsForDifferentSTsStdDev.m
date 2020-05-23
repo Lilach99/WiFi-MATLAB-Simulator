@@ -3,29 +3,32 @@ function [] = plotLinkMetricsForDifferentSTsStdDev(linkThpts, linkGoodpts, linkC
     figure(1)
     
     colors = {'g', 'r', 'b', 'm', 'y', 'k'};
+    colorsNames = {'green', 'red', 'blue', 'magenta', 'yellow', 'black'};
     tiledlayout(2,1)
     nexttile
     % plot all throughput graphs in the same figure
     for j=1:6
         scatter(linkLens, linkThpts(j, :), '.', colors{j});
+        line(linkLens, linkThpts(j, :), 'Color', colorsNames{j});
         hold on
     end
     xlabel('Link length (km)');
     ylabel('Standard Deviation of Link Throughput');
     title({'Standard Deviation of Link Throughputs (including overhead)', 'Standard SlotTime VS various APD-based SlotTime values', setUpTitle});    
-    legend({'Standard SlotTime', '2APD SlotTime', '3APD SlotTime', 'APD SlotTime', '0.5APD SlotTime', '0.25APD SlotTime'}, 'Location','southwest');
+    legend({'Standard SlotTime', '2APD SlotTime', '3APD SlotTime', 'APD SlotTime', '0.5APD SlotTime', '0.25APD SlotTime'}, 'Location', 'bestoutside');
     hold off
     
     nexttile
     % plot all goodputs graphs in the same figure
     for j=1:6
         scatter(linkLens, linkGoodpts(j, :), '.', colors{j});
+        line(linkLens, linkThpts(j, :), 'Color', colorsNames{j});
         hold on
     end
     title({'Standard Deviation of Link Goodputs (only successfully received data)', 'Standard SlotTime VS APD-based SlotTime', setUpTitle});
     xlabel('Link length (km)');
     ylabel('Standard Deviation of Link Goodput');
-    legend({'Standard SlotTime', '2APD SlotTime', '3APD SlotTime', 'APD SlotTime', '0.5APD SlotTime', '0.25APD SlotTime'}, 'Location','southwest');
+    legend({'Standard SlotTime', '2APD SlotTime', '3APD SlotTime', 'APD SlotTime', '0.5APD SlotTime', '0.25APD SlotTime'}, 'Location', 'bestoutside');
     savefig([resultsPath, '\Goodput_and_Throughput_STDDEV.fig']);
     hold off
         
@@ -33,12 +36,13 @@ function [] = plotLinkMetricsForDifferentSTsStdDev(linkThpts, linkGoodpts, linkC
     % plot all collided percisions graphs in the same figure
     for j=1:6
         scatter(linkLens, linkCollPer(j, :), '.', colors{j});
+        line(linkLens, linkThpts(j, :), 'Color', colorsNames{j});
         hold on
     end
     title({'Standard Deviation of Percentage of collided data bytes (%)', setUpTitle});
     xlabel('Link length (km)');
     ylabel('Standard Deviation of Percentage of collided data bytes');
-    legend({'Standard SlotTime', '2APD SlotTime', '3APD SlotTime', 'APD SlotTime', '0.5APD SlotTime', '0.25APD SlotTime'}, 'Location','southwest');
+    legend({'Standard SlotTime', '2APD SlotTime', '3APD SlotTime', 'APD SlotTime', '0.5APD SlotTime', '0.25APD SlotTime'}, 'Location', 'bestoutside');
     savefig([resultsPath, '\Collided_Bytes_Percentage_STDDEV.fig']);
     hold off
     
