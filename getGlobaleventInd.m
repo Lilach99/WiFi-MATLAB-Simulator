@@ -1,4 +1,9 @@
 function r = getGlobaleventInd()
-coder.inline('always')
-global eventInd
+
+persistent eventInd
+if isempty(eventInd)
+    eventInd = 0;
+end
+
 r = eventInd;
+eventInd = eventInd + 1;

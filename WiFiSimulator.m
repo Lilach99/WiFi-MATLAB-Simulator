@@ -42,7 +42,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
         devStates{i} = createDevInitState(devsParams{i}, ackTO);
     end
     
-    setGlobaleventInd(0); % initiate the global variable eventInd
+    %setGlobaleventInd(0); % initiate the global variable eventInd
     % create the initial simEventType.START_SIM event for the simulation
     simEventsList = createEvent(simEventType.START_SIM, curTime, 0); % station number '0' stands for a global event, which does not relate to a specific station
         

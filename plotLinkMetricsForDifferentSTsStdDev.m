@@ -2,14 +2,15 @@ function [] = plotLinkMetricsForDifferentSTsStdDev(linkThpts, linkGoodpts, linkC
     %plots the standard deviation scatter of the results
     figure(1)
     
-    colors = {'g', 'r', 'b', 'm', 'y', 'k'};
+    %colors = {'g', 'r', 'b', 'm', 'y', 'k'};
     colorsNames = {'green', 'red', 'blue', 'magenta', 'yellow', 'black'};
     tiledlayout(2,1)
     nexttile
     % plot all throughput graphs in the same figure
     for j=1:6
-        scatter(linkLens, linkThpts(j, :), '.', colors{j});
-        line(linkLens, linkThpts(j, :), 'Color', colorsNames{j});
+        plot(linkLens, linkThpts(j, :), '-o', 'Color', colorsNames{j});
+%         scatter(linkLens, linkThpts(j, :), '.', colors{j});
+%         line(linkLens, linkThpts(j, :), 'Color', colorsNames{j});
         hold on
     end
     xlabel('Link length (km)');
@@ -21,8 +22,9 @@ function [] = plotLinkMetricsForDifferentSTsStdDev(linkThpts, linkGoodpts, linkC
     nexttile
     % plot all goodputs graphs in the same figure
     for j=1:6
-        scatter(linkLens, linkGoodpts(j, :), '.', colors{j});
-        line(linkLens, linkThpts(j, :), 'Color', colorsNames{j});
+        plot(linkLens, linkGoodpts(j, :), '-o', 'Color', colorsNames{j});
+%         scatter(linkLens, linkGoodpts(j, :), '.', colors{j});
+%         line(linkLens, linkGoodpts(j, :), 'Color', colorsNames{j});
         hold on
     end
     title({'Standard Deviation of Link Goodputs (only successfully received data)', 'Standard SlotTime VS APD-based SlotTime', setUpTitle});
@@ -35,8 +37,9 @@ function [] = plotLinkMetricsForDifferentSTsStdDev(linkThpts, linkGoodpts, linkC
     figure(2)   
     % plot all collided percisions graphs in the same figure
     for j=1:6
-        scatter(linkLens, linkCollPer(j, :), '.', colors{j});
-        line(linkLens, linkThpts(j, :), 'Color', colorsNames{j});
+        plot(linkLens, linkCollPer(j, :), '-o', 'Color', colorsNames{j});
+%         scatter(linkLens, linkCollPer(j, :), '.', colors{j});
+%         line(linkLens, linkCollPer(j, :), 'Color', colorsNames{j});
         hold on
     end
     title({'Standard Deviation of Percentage of collided data bytes (%)', setUpTitle});
