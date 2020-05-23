@@ -3,9 +3,12 @@ function [orderedEvents, handlingOrder] = sortByHandlingOrder(events)
     %   this is done according to the simEventType enum field, the time of
     %   all of the evnets should be the same time (otherwise we do not need
     %   this sorting)
-    
-    [~,handlingOrder]=sort([events.type]);
-    orderedEvents = events(handlingOrder);
+    orderedEvents = events;
+    handlingOrder = [1];
+    if (length(events) > 1)
+        [~,handlingOrder]=sort([events.type]);
+        orderedEvents = events(handlingOrder);
+    end
     
 %     eventTypesEnums = cellfun(@(s)s.type, events,'uni',0);
 %     eventTypeNums = cellfun(@(s)double(s), eventTypesEnums,'uni',0); 
