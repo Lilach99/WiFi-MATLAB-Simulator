@@ -37,8 +37,12 @@ function [] = analayzeResults(outputsPath, toWritePath, numDists, numSTVals, num
     totalCollPer = (totalLink1CollPer + totalLink2CollPer)/2;
     [totalLinkThptsAVG, totalLinkGoodptsAVG, totalLinkCollPerAVG] = calcAvg(totalThpts, totalGoodputs, totalCollPer, numSTVals, numDists);
     [totalLinkThptsSTDEV, totalLinkGoodptsSTDEV, totalLinkCollPerSTDEV] = calcStandardDev(totalThpts, totalGoodputs, totalCollPer, numSTVals, numDists);
-    plotLinkMetricsForDifferentSTsAvg(totalLinkThptsAVG, totalLinkGoodptsAVG, totalLinkCollPerAVG, linkLens, toWritePath, [setUpTitle, ' link 1 - Mean of ', int2str(numSims), ' simulations'], dataRate);
+    [totalLinkThptsNeg, totalLinkGoodptsNeg, totalLinkCollPerNeg] = calcNeg(totalThpts, totalGoodputs, totalCollPer, numSTVals, numDists);
+    [totalLinkThptsPos, totalLinkGoodptsPos, totalLinkCollPerPos] = calcPos(totalThpts, totalGoodputs, totalCollPer, numSTVals, numDists);
+    %plotLinkMetricsForDifferentSTsAvg(totalLinkThptsAVG, totalLinkGoodptsAVG, totalLinkCollPerAVG, linkLens, toWritePath, [setUpTitle, ' link 1 - Mean of ', int2str(numSims), ' simulations'], dataRate);
     plotLinkMetricsForDifferentSTsStdDev(totalLinkThptsSTDEV, totalLinkGoodptsSTDEV, totalLinkCollPerSTDEV, linkLens, toWritePath, [setUpTitle, ' link 1 - Standard deviation of ', int2str(numSims), ' simulations']);
+    plotLinkMetricsForDifferentSTsAvgWithErrorbar(totalLinkThptsAVG, totalLinkGoodptsAVG, totalLinkCollPerAVG, totalLinkThptsNeg, totalLinkGoodptsNeg, totalLinkCollPerNeg, totalLinkThptsPos, totalLinkGoodptsPos, totalLinkCollPerPos, linkLens, toWritePath, [setUpTitle, ' link 1 - Mean of ', int2str(numSims), ' simulations'], dataRate);
 
+    
 end
 

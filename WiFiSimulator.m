@@ -137,7 +137,7 @@ function [output] = WiFiSimulator(devsParams, phyNetParams, logNetParams, simula
                         % so, in the 'station' field of the GEN_PACK event,
                         % there will be the link index in the array instead
                         % of a single station's ID.
-                        pktLength = getPacketLength(linksInfo{curStation});%randi([linksInfo{curStation}.minPS, linksInfo{curStation}.maxPS]); % randomize the packet size
+                        pktLength = getPacketLength(linksInfo{curStation}, devStates{curStation});%randi([linksInfo{curStation}.minPS, linksInfo{curStation}.maxPS]); % randomize the packet size
                         pkt = generatePacket(curStation, linksInfo{curStation}, pktLength , curTime, linksInfo{curStation}.src, linksInfo{curStation}.dst);
                         % update the device that it has a packet to send
                         linksDS{curStation}.generatedPktCnt = linksDS{curStation}.generatedPktCnt + 1;

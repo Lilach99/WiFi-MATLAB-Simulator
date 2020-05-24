@@ -116,7 +116,7 @@ tic
     linkInfoQrtAPDST{1} = link1InfoQrtAPDST;
     linkInfoQrtAPDST{2} = link2InfoQrtAPDST;
 
-    setUpTitle = [int2str(numDevs), ' point to point link, 1460B packets, ', int2str(simTime), ' seconds simulation'];
+    setUpTitle = [int2str(numDevs), ' point to point link, 1460B packets with aggregation, ', int2str(simTime), ' seconds simulation'];
 
 
     %tic
