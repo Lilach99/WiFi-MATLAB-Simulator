@@ -1,6 +1,7 @@
 function [] = plotLinkMetricsForDifferentSTsAvgWithErrorbar(linkThpts, linkGoodpts, linkCollPer, linkThptsNeg, linkGoodptsNeg, linkCollPerNeg, linkThptsPos, linkGoodptsPos, linkCollPerPos, linkLens, resultsPath, setUpTitle, dataRate)
     %plots the avg scatter of the results
    
+    % -1 is for srandard value
     slotTimeFactors = [-1, 2, 3, 1, 0.5, 0.25];
     
     figure(1)
@@ -45,7 +46,9 @@ function [] = plotLinkMetricsForDifferentSTsAvgWithErrorbar(linkThpts, linkGoodp
     savefig([resultsPath, '\Goodput_and_Throughput_AVG.fig']);
     hold off
         
+
     figure(2)   
+    clf
     % plot all collided percisions graphs in the same figure
     for j=1:6
         errorbar(linkLens, linkCollPer(j, :), linkCollPerNeg(j, :), linkCollPerPos(j, :), '-o', 'Color', colorsNames{j});

@@ -1,13 +1,14 @@
-function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, distFactor, dataRate, pktPolicy, resultsPath)
+function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, distFactor, dataRate, aggFactor, pktPolicy, resultsPath)
     %testing function, simulates a network with the given paraeters
     %   for now, numDevs can be 2 or 4 
+    %   aggFactor is for packets aggregation experiments
     
     switch numDevs
         
         case 2
             %  for 2 devices, 1 pTp link:
-            dev1P = createDevParams(1, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc); % SIFS and SlotTime are in microseconds
-            dev2P = createDevParams(2, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
+            dev1P = createDevParams(1, 16*10^-6, slotTime, 14, aggFactor, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc); % SIFS and SlotTime are in microseconds
+            dev2P = createDevParams(2, 16*10^-6, slotTime, 14, aggFactor, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
 
             link1 = createlinkInfo(1, 2, 6, dataRate, 100, 2000, 0, pktPolicy); % rates - in Mbps!! PHY rate and then APP (DATA) rate
             link2 = createlinkInfo(2, 1, 6, dataRate,  100, 2000, 0, pktPolicy);
@@ -21,10 +22,11 @@ function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, d
 
         case 4
             % for 4 devices:
-            dev1P = createDevParams(1, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc); % SIFS and SlotTime are in microseconds
-            dev2P = createDevParams(2, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
-            dev3P = createDevParams(3, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc); 
-            dev4P = createDevParams(4, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
+            % the 1 stands for no aggregation!!
+            dev1P = createDevParams(1, 16*10^-6, slotTime, 14, 1, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc); % SIFS and SlotTime are in microseconds
+            dev2P = createDevParams(2, 16*10^-6, slotTime, 14, 1, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
+            dev3P = createDevParams(3, 16*10^-6, slotTime, 14, 1, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc); 
+            dev4P = createDevParams(4, 16*10^-6, slotTime, 14, 1, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
 
             link1 = createlinkInfo(1, 2, 6, dataRate, 100, 2000, 0, pktPolicy); % rates - in Mbps!! PHY rate and then APP (DATA) rate
             link2 = createlinkInfo(2, 1, 6, dataRate, 100, 2000, 0, pktPolicy);
@@ -40,12 +42,12 @@ function [output] = simulateNet(slotTime, simTime, numDevs, debMode, wantPlot, d
             
         case 6
             % for 6 devices:
-            dev1P = createDevParams(1, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc); % SIFS and SlotTime are in microseconds
-            dev2P = createDevParams(2, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
-            dev3P = createDevParams(3, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc); 
-            dev4P = createDevParams(4, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
-            dev5P = createDevParams(5, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
-            dev6P = createDevParams(6, 16*10^-6, slotTime, 14, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
+            dev1P = createDevParams(1, 16*10^-6, slotTime, 14, 1, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc); % SIFS and SlotTime are in microseconds
+            dev2P = createDevParams(2, 16*10^-6, slotTime, 14, 1, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
+            dev3P = createDevParams(3, 16*10^-6, slotTime, 14, 1, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc); 
+            dev4P = createDevParams(4, 16*10^-6, slotTime, 14, 1, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
+            dev5P = createDevParams(5, 16*10^-6, slotTime, 14, 1, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
+            dev6P = createDevParams(6, 16*10^-6, slotTime, 14, 1, backoffTechnique.WIFI, @ackLengthFunc, @pktLengthFunc);
 
             link1 = createlinkInfo(1, 2, 6, dataRate, 100, 2000, 0, pktPolicy); % rates - in Mbps!! PHY rate and then APP (DATA) rate
             link2 = createlinkInfo(2, 1, 6, dataRate, 100, 2000, 0, pktPolicy);

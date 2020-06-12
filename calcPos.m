@@ -5,11 +5,11 @@ function [totalLinkThptsPOS, totalLinkGoodptsPOS, totalLinkCollPerPOS] = calcPos
     totalLinkCollPerAVG = transpose(reshape(mean(totalLinkCollPer, 1), [numDists, numSTVals]));
     
     totalLinkThptsPOS = transpose(reshape(max(totalLinkThpts, [], 1), [numDists, numSTVals]));
-    totalLinkThptsPOS = totalLinkThptsAVG - totalLinkThptsPOS;
+    totalLinkThptsPOS = totalLinkThptsPOS - totalLinkThptsAVG;
     totalLinkGoodptsPOS = transpose(reshape(max(totalLinkGoodpts, [], 1), [numDists, numSTVals]));
-    totalLinkGoodptsPOS = totalLinkGoodptsAVG - totalLinkGoodptsPOS;
+    totalLinkGoodptsPOS = totalLinkGoodptsPOS - totalLinkGoodptsAVG;
     totalLinkCollPerPOS = transpose(reshape(max(totalLinkCollPer, [], 1), [numDists, numSTVals]));
-    totalLinkCollPerPOS = totalLinkCollPerAVG - totalLinkCollPerPOS;
+    totalLinkCollPerPOS = totalLinkCollPerPOS - totalLinkCollPerAVG;
     
 end
 
